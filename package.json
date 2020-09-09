@@ -1,0 +1,40 @@
+{
+  "name": "userin-core",
+  "version": "0.0.1",
+  "description": "UserIn core component to build an OAuth 2.0 OpenID Connect web API that supports integration with the most popular Federated Identity Providers (e.g., Google, Facebook, GitHub)",
+  "main": "src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicolasdao/userin-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nicolasdao/userin-core/issues"
+  },
+  "homepage": "https://github.com/nicolasdao/userin-core#readme",
+  "scripts": {
+    "dev": "TZ=UTC NODE_ENV=dev node-dev index.js",
+    "lint": "eslint index.js src/ test/ --fix",
+    "push": "git push --follow-tags origin master",
+    "rls": "standard-version --release-as",
+    "start": "TZ=UTC NODE_ENV=production node index.js",
+    "test": "mocha --exit",
+    "v": "node -e \"console.log(require('./package.json').version)\""
+  },
+  "keywords": [
+    "oauth2",
+    "oidc"
+  ],
+  "author": "Nicolas Dao",
+  "license": "ISC",
+  "dependencies": {
+    "puffy": "^1.2.1"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^7.8.1",
+    "express": "^4.17.1",
+    "mocha": "^8.1.3",
+    "node-dev": "^5.2.0",
+    "standard-version": "^9.0.0"
+  }
+}
