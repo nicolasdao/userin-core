@@ -4,6 +4,8 @@ const { oauth2Params, error: { InvalidRequestError, InternalServerError, Invalid
 
 const endpoint = 'userinfo' 
 
+const TRACE_ON = process.env.LOG_LEVEL == 'trace'
+
 /**
  * Gets the userinfo 
  * 					
@@ -18,6 +20,10 @@ const endpoint = 'userinfo'
  */
 const handler = (payload, eventHandlerStore, { authorization }) => catchErrors(co(function *() {
 	const errorMsg = 'Failed to get the user info'
+
+	if (TRACE_ON)
+		console.log('INFO - Request to get user info')
+
 	// A. Validates input
 	if (!eventHandlerStore.get_token_claims)
 		throw new InternalServerError(`${errorMsg}. Missing 'get_token_claims' handler.`)
