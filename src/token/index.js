@@ -1,6 +1,6 @@
 const { co } = require('core-async')
-const { error: { catchErrors, wrapErrors, HttpError } } = require('puffy')
-const { oauth2Params, error: { errorCode } } = require('../_utils')
+const { error: { catchErrors, wrapErrors } } = require('puffy')
+const { oauth2Params, error: { InvalidRequestError, UnsupportedGrantTypeError } } = require('../_utils')
 const grantTypeAuthorizationCode = require('./grantTypeAuthorizationCode')
 const grantTypeClientCredentials = require('./grantTypeClientCredentials')
 const grantTypePassword = require('./grantTypePassword')
@@ -28,10 +28,12 @@ const TRACE_ON = process.env.LOG_LEVEL == 'trace'
  * @param {Object}	eventHandlerStore                         					    						
  *  
  * @yield {[Error]}	output[0]						Array of errors
- * @yield {String}	output[1].id_token
  * @yield {String}	output[1].access_token
  * @yield {String}	output[1].token_type			'bearer'
  * @yield {Number}	output[1].expires_in
+ * @yield {String}	output[1].id_token
+ * @yield {String}	output[1].refresh_token
+ * @yield {String}	output[1].scope
  */
 const handler = (payload={}, eventHandlerStore={}) => catchErrors(co(function *() {
 	const { grant_type, username, password, client_id, client_secret, refresh_token, code, state, scope, data:extraData } = payload
@@ -43,25 +45,25 @@ const handler = (payload={}, eventHandlerStore={}) => catchErrors(co(function *(
 	const scopes = oauth2Params.convert.thingToThings(scope)
 	// 1. Validates inputs
 	if (!grant_type)
-		throw new HttpError(`${errorMsg}. Missing required 'grant_type'.`, ...errorCode.invalid_request)
+		throw new InvalidRequestError(`${errorMsg}. Missing required 'grant_type'.`)
 	if (!client_id)
-		throw new HttpError(`${errorMsg}. Missing required 'client_id' argument`, ...errorCode.invalid_request)
+		throw new InvalidRequestError(`${errorMsg}. Missing required 'client_id' argument`)
 
 	if (VALID_GRANT_TYPES.indexOf(grant_type) < 0)
-		throw new HttpError(`${errorMsg}. grant_type '${grant_type}' is not supported.`, ...errorCode.unsupported_grant_type)
+		throw new UnsupportedGrantTypeError(`${errorMsg}. grant_type '${grant_type}' is not supported.`)
 
 	if (grant_type == 'client_credentials' && (!client_id || !client_secret))
-		throw new HttpError(`${errorMsg}. When grant_type is '${grant_type}' both 'client_id' and 'client_secret' are required.`, ...errorCode.invalid_request)	
+		throw new InvalidRequestError(`${errorMsg}. When grant_type is '${grant_type}' both 'client_id' and 'client_secret' are required.`)	
 	if (grant_type == 'password' && (!username || !password))
-		throw new HttpError(`${errorMsg}. When grant_type is '${grant_type}' both 'username' and 'password' are required.`, ...errorCode.invalid_request)
+		throw new InvalidRequestError(`${errorMsg}. When grant_type is '${grant_type}' both 'username' and 'password' are required.`)
 	if (grant_type == 'authorization_code') {
 		if (!code)
-			throw new HttpError(`${errorMsg}. When grant_type is '${grant_type}', 'code' is required.`, ...errorCode.invalid_request)
+			throw new InvalidRequestError(`${errorMsg}. When grant_type is '${grant_type}', 'code' is required.`)
 		if (!client_secret)
-			throw new HttpError(`${errorMsg}. When grant_type is '${grant_type}', 'client_secret' is required.`, ...errorCode.invalid_request)
+			throw new InvalidRequestError(`${errorMsg}. When grant_type is '${grant_type}', 'client_secret' is required.`)
 	}
 	if (grant_type == 'refresh_token' && !refresh_token)
-		throw new HttpError(`${errorMsg}. When grant_type is '${grant_type}', 'refresh_token' is required.`, ...errorCode.invalid_request)
+		throw new InvalidRequestError(`${errorMsg}. When grant_type is '${grant_type}', 'refresh_token' is required.`)
 
 	const user = extraData && typeof(extraData) == 'object' 
 		? { ...extraData, username, password } 

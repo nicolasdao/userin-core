@@ -14,7 +14,8 @@ const oauth2HttpHandlerFactory = (app, eventHandlerStore, config) => (method, en
 
 	app[method](endpoint, async (req, res) => {
 		const params = await getParams(req)
-		const [errors, result] = await handler(params, eventHandlerStore, { ...context, req })
+		const authorization = req.headers.Authorization || req.headers.authorization
+		const [errors, result] = await handler(params, eventHandlerStore, { ...context, req, authorization })
 		if (errors)
 			return formatResponseError(errors, res)
 		else
