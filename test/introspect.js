@@ -12,6 +12,7 @@ const { co } = require('core-async')
 const { assert } = require('chai')
 const { handler:introspectHandler } = require('../src/introspect')
 const grantTypePassword = require('../src/token/grantTypePassword')
+const grantTypeAuthorizationCode = require('../src/token/grantTypeAuthorizationCode')
 const eventRegister = require('../src/eventRegister')
 const handler = require('./mock/handler')
 const tokenHelper = require('./mock/token')
@@ -31,12 +32,34 @@ describe('introspect', () => {
 		const payload = { client_id:'default', client_secret:123 }
 		const user = { username: 'nic@cloudlessconsulting.com', password: 123456 }
 
-		const getValidAccessToken = (eventHandlerStore, scopes) => co(function *() {
-			const [errors, result] = yield grantTypePassword.exec(eventHandlerStore, { client_id:payload.client_id, user, scopes })
+		const getValidAccessToken = (eventHandlerStore) => co(function *() {
+			const [errors, result] = yield grantTypePassword.exec(eventHandlerStore, { 
+				client_id:payload.client_id, 
+				user, 
+				scopes:['profile']
+			})
 			if (errors)
 				return [errors, null]
 			else
 				return [null, result.access_token]
+		})
+
+		const getValidIdAndRefreshToken = (eventHandlerStore) => co(function *() {
+			const stubbedServiceAccount = { client_id:'default', client_secret:123 }
+			const [codeErrors, { token:code }] = yield eventHandlerStore.generate_authorization_code.exec({
+				...stubbedServiceAccount, 
+				user_id:1, 
+				scopes:['profile', 'openid', 'offline_access']
+			})
+			if (codeErrors)
+				return [codeErrors, null]
+			const [tokenErrors, result] = yield grantTypeAuthorizationCode.exec(eventHandlerStore, { 
+				...stubbedServiceAccount, 
+				code 
+			})
+			if (tokenErrors)
+				return [tokenErrors, null]
+			return [null, result]
 		})
 
 		it('01 - Should fail when the \'get_token_claims\' event handler is not defined.', done => {
@@ -61,13 +84,13 @@ describe('introspect', () => {
 				done()
 			}).catch(done)
 		})
-		it('03 - Should return the userinfo when the access_token is valid.', done => {
+		it('03 - Should return the token info when the access_token is valid.', done => {
 
 			const eventHandlerStore = {}
 			registerAllHandlers(eventHandlerStore)
 
 			co(function *() {
-				const [codeErrors, access_token] = yield getValidAccessToken(eventHandlerStore, ['profile'])
+				const [codeErrors, access_token] = yield getValidAccessToken(eventHandlerStore)
 				
 				assert.isNotOk(codeErrors, '01')
 				assert.isOk(access_token, '02')
@@ -88,133 +111,225 @@ describe('introspect', () => {
 				done()
 			}).catch(done)
 		})
-		// it('04 - Should return the userinfo with email when the access_token is valid and the scopes contain \'email\'.', done => {
+		it('04 - Should return the token info when the id_token is valid.', done => {
 
-		// 	const eventHandlerStore = {}
-		// 	registerAllHandlers(eventHandlerStore)
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
 
-		// 	co(function *() {
-		// 		const [codeErrors, authorization] = yield getValidAccessToken(eventHandlerStore, ['profile', 'email'])
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		assert.isNotOk(codeErrors, '01')
-		// 		assert.isOk(authorization, '02')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
+
+				const [errors, tokenInfo] = yield introspectHandler(
+					{ ...payload, token:result.id_token, token_type_hint:'id_token' }, eventHandlerStore)
+
+				assert.isNotOk(errors, '03')
+				assert.isOk(tokenInfo, '04')
+				assert.isOk(tokenInfo.active, '05')
+				assert.equal(tokenInfo.iss, 'https://userin.com', '06')
+				assert.equal(tokenInfo.sub, 1, '07')
+				assert.equal(tokenInfo.aud, 'https://unittest.com', '08')
+				assert.equal(tokenInfo.client_id, 'default', '09')
+				assert.equal(tokenInfo.scope, 'profile openid offline_access', '10')
+				assert.equal(tokenInfo.token_type, 'Bearer', '11')
+
+				done()
+			}).catch(done)
+		})
+		it('05 - Should return the token info when the refresh_token is valid.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		const [errors, tokenInfo] = yield introspectHandler(null, eventHandlerStore)
-					
-		// 		assert.isNotOk(errors, '03')
-		// 		assert.isOk(tokenInfo, '04')
-		// 		assert.isOk(tokenInfo.active, '05')
-		// 		assert.equal(tokenInfo.given_name, 'Nic', '06')
-		// 		assert.equal(tokenInfo.family_name, 'Dao', '07')
-		// 		assert.equal(tokenInfo.zoneinfo, 'Australia/Sydney', '08')
-		// 		assert.isOk(tokenInfo.email === 'nic@cloudlessconsulting.com', '09')
-		// 		assert.isOk(tokenInfo.email_verified === true, '10')
-		// 		assert.isOk(tokenInfo.address === undefined, '11')
-		// 		assert.isOk(tokenInfo.phone === undefined, '12')
-		// 		assert.isOk(tokenInfo.phone_number_verified === undefined, '13')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
 
-		// 		done()
-		// 	}).catch(done)
-		// })
-		// it('05 - Should return the userinfo with phone when the access_token is valid and the scopes contain \'phone\'.', done => {
+				const [errors, tokenInfo] = yield introspectHandler(
+					{ ...payload, token:result.refresh_token, token_type_hint:'refresh_token' }, eventHandlerStore)
 
-		// 	const eventHandlerStore = {}
-		// 	registerAllHandlers(eventHandlerStore)
+				assert.isNotOk(errors, '03')
+				assert.isOk(tokenInfo, '04')
+				assert.isOk(tokenInfo.active, '05')
+				assert.equal(tokenInfo.iss, 'https://userin.com', '06')
+				assert.equal(tokenInfo.sub, 1, '07')
+				assert.equal(tokenInfo.aud, 'https://unittest.com', '08')
+				assert.equal(tokenInfo.client_id, 'default', '09')
+				assert.equal(tokenInfo.scope, 'profile openid offline_access', '10')
+				assert.equal(tokenInfo.token_type, 'Bearer', '11')
 
-		// 	co(function *() {
-		// 		const [codeErrors, authorization] = yield getValidAccessToken(eventHandlerStore, ['profile', 'email', 'phone'])
+				done()
+			}).catch(done)
+		})
+		it('06 - Should fail when the client_id is missing.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		assert.isNotOk(codeErrors, '01')
-		// 		assert.isOk(authorization, '02')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
+
+				const [errors] = yield introspectHandler(
+					{ 
+						...payload, 
+						token:result.refresh_token, 
+						token_type_hint:'refresh_token',
+						client_id:null
+					}, eventHandlerStore)
+
+				assert.isOk(errors, '05')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing required \'client_id\'') >= 0), '06')
+
+				done()
+			}).catch(done)
+		})
+		it('07 - Should fail when the client_secret is missing.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		const [errors, tokenInfo] = yield introspectHandler(null, eventHandlerStore)
-					
-		// 		assert.isNotOk(errors, '03')
-		// 		assert.isOk(tokenInfo, '04')
-		// 		assert.isOk(tokenInfo.active, '05')
-		// 		assert.equal(tokenInfo.given_name, 'Nic', '06')
-		// 		assert.equal(tokenInfo.family_name, 'Dao', '07')
-		// 		assert.equal(tokenInfo.zoneinfo, 'Australia/Sydney', '08')
-		// 		assert.isOk(tokenInfo.email === 'nic@cloudlessconsulting.com', '09')
-		// 		assert.isOk(tokenInfo.email_verified === true, '10')
-		// 		assert.isOk(tokenInfo.address === undefined, '11')
-		// 		assert.isOk(tokenInfo.phone === '+6112345678', '12')
-		// 		assert.isOk(tokenInfo.phone_number_verified === false, '13')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
 
-		// 		done()
-		// 	}).catch(done)
-		// })
-		// it('06 - Should return the userinfo with address when the access_token is valid and the scopes contain \'address\'.', done => {
+				const [errors] = yield introspectHandler(
+					{ 
+						...payload, 
+						token:result.refresh_token, 
+						token_type_hint:'refresh_token',
+						client_secret:null
+					}, eventHandlerStore)
 
-		// 	const eventHandlerStore = {}
-		// 	registerAllHandlers(eventHandlerStore)
+				assert.isOk(errors, '05')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing required \'client_secret\'') >= 0), '06')
 
-		// 	co(function *() {
-		// 		const [codeErrors, authorization] = yield getValidAccessToken(eventHandlerStore, ['profile', 'email', 'phone', 'address'])
+				done()
+			}).catch(done)
+		})
+		it('08 - Should fail when the token is missing.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		assert.isNotOk(codeErrors, '01')
-		// 		assert.isOk(authorization, '02')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
+
+				const [errors] = yield introspectHandler(
+					{ 
+						...payload, 
+						token:null, 
+						token_type_hint:'refresh_token',
+					}, eventHandlerStore)
+
+				assert.isOk(errors, '05')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing required \'token\'') >= 0), '06')
+
+				done()
+			}).catch(done)
+		})
+		it('09 - Should fail when the token_type_hint is missing.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		const [errors, tokenInfo] = yield introspectHandler(null, eventHandlerStore)
-					
-		// 		assert.isNotOk(errors, '03')
-		// 		assert.isOk(tokenInfo, '04')
-		// 		assert.isOk(tokenInfo.active, '05')
-		// 		assert.equal(tokenInfo.given_name, 'Nic', '06')
-		// 		assert.equal(tokenInfo.family_name, 'Dao', '07')
-		// 		assert.equal(tokenInfo.zoneinfo, 'Australia/Sydney', '08')
-		// 		assert.isOk(tokenInfo.email === 'nic@cloudlessconsulting.com', '09')
-		// 		assert.isOk(tokenInfo.email_verified === true, '10')
-		// 		assert.isOk(tokenInfo.address === 'Some street in Sydney', '11')
-		// 		assert.isOk(tokenInfo.phone === '+6112345678', '12')
-		// 		assert.isOk(tokenInfo.phone_number_verified === false, '13')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
 
-		// 		done()
-		// 	}).catch(done)
-		// })
-		// it('07 - Should fail when no access_token is passed in the authorization header.', done => {
+				const [errors] = yield introspectHandler(
+					{ 
+						...payload, 
+						token:result.refresh_token, 
+						token_type_hint:null,
+					}, eventHandlerStore)
 
-		// 	const eventHandlerStore = {}
-		// 	registerAllHandlers(eventHandlerStore)
+				assert.isOk(errors, '05')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing required \'token_type_hint\'') >= 0), '06')
 
-		// 	co(function *() {
-		// 		const [errors] = yield introspectHandler(null, eventHandlerStore, { authorization:null })
+				done()
+			}).catch(done)
+		})
+		it('10 - Should fail when the token is incorrect.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		assert.isOk(errors, '01')
-		// 		assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing required \'authorization\'') >= 0), '02')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
 
-		// 		done()
-		// 	}).catch(done)
-		// })
-		// it('08 - Should fail when an invalid access_token is passed in the authorization header.', done => {
+				const [errors] = yield introspectHandler(
+					{ 
+						...payload, 
+						token:12344, 
+						token_type_hint:'refresh_token',
+					}, eventHandlerStore)
 
-		// 	const eventHandlerStore = {}
-		// 	registerAllHandlers(eventHandlerStore)
+				assert.isOk(errors, '05')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Invalid refresh_token') >= 0), '06')
 
-		// 	co(function *() {
-		// 		const [errors] = yield introspectHandler(null, eventHandlerStore, { authorization:'bearer 123' })
+				done()
+			}).catch(done)
+		})
+		it('11 - Should fail when the client_id and client_secret are not the service account associated with the token.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [codeErrors, result] = yield getValidIdAndRefreshToken(eventHandlerStore)
 				
-		// 		assert.isOk(errors, '01')
-		// 		assert.isOk(errors.some(e => e.message && e.message.indexOf('Invalid access_token') >= 0), '02')
+				assert.isNotOk(codeErrors, '01')
+				assert.isOk(result, '02')
+				assert.isOk(result.id_token, '03')
+				assert.isOk(result.refresh_token, '04')
 
-		// 		done()
-		// 	}).catch(done)
-		// })
-		// it('09 - Should fail when an non bearer token is passed in the authorization header.', done => {
+				const [errors] = yield introspectHandler(
+					{ 
+						...payload, 
+						token:result.refresh_token, 
+						token_type_hint:'refresh_token',
+						client_id: 'fraudster',
+						client_secret:456
+					}, eventHandlerStore)
 
-		// 	const eventHandlerStore = {}
-		// 	registerAllHandlers(eventHandlerStore)
+				assert.isOk(errors, '05')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('client_id not found') >= 0), '06')
 
-		// 	co(function *() {
-		// 		const [errors] = yield introspectHandler(null, eventHandlerStore, { authorization:'123' })
-				
-		// 		assert.isOk(errors, '01')
-		// 		assert.isOk(errors.some(e => e.message && e.message.indexOf('The \'authorization\' header must contain a bearer access_token') >= 0), '02')
-
-		// 		done()
-		// 	}).catch(done)
-		// })
-		it('10 - Should show active false when an expired access_token is passed in the authorization header.', done => {
+				done()
+			}).catch(done)
+		})
+		it('12 - Should show active false when an expired access_token is passed in the authorization header.', done => {
 
 			const eventHandlerStore = {}
 			registerAllHandlers(eventHandlerStore)

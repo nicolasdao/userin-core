@@ -59,21 +59,19 @@ const exec = (eventHandlerStore={}, { client_id, client_secret, code, state }) =
 	if (oidcClaims.client_id != client_id)
 		throw new InvalidClientError(`${errorMsg}. Invalid client_id.`)
 
-	const { scope, aud, sub } = oidcClaims 
+	const { scope, sub } = oidcClaims 
 	const scopes = oauth2Params.convert.thingToThings(scope) || []
-	const audiences = oauth2Params.convert.thingToThings(aud) || []
 
 	const [claimsError] = oauth2Params.verify.claimsExpired(oidcClaims)
 	const [scopeErrors] = oauth2Params.verify.scopes({ scopes, serviceAccountScopes:serviceAccount.scopes })
-	const [audienceErrors] = oauth2Params.verify.audiences({ audiences, serviceAccountAudiences:serviceAccount.audiences })
-	if (claimsError || scopeErrors || audienceErrors)
-		throw wrapErrors(errorMsg, claimsError || scopeErrors || audienceErrors)
+	if (claimsError || scopeErrors)
+		throw wrapErrors(errorMsg, claimsError || scopeErrors)
 
 	// D. Get the access_token, id_token, and potentially the refresh_token for that user_id
 	const requestRefreshToken = scopes && scopes.indexOf('offline_access') >= 0
 	const requestIdToken = scopes && scopes.indexOf('openid') >= 0
 
-	const config = { client_id, user_id:sub, audiences, scopes, state }
+	const config = { client_id, user_id:sub, audiences:serviceAccount.audiences, scopes, state }
 
 	const emptyPromise = Promise.resolve([null, null])
 	const [[accessTokenErrors, accessTokenResult], [idTokenErrors, idTokenResult], [refreshTokenErrors, refresfTokenResult]] = yield [
