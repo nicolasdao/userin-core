@@ -1,5 +1,5 @@
 const { error: { catchErrors } } = require('puffy')
-const { InvalidScopeError, UnauthorizedClientError, InvalidClaimError, InvalidTokenError } = require('./error')
+const { InvalidScopeError, UnauthorizedClientError, InvalidClaimError, InvalidTokenError, InternalServerError, InvalidClientError } = require('./error')
 
 const thingToThings = thing => (thing ? decodeURIComponent(thing).split(' ') : []).reduce((acc,s) => {
 	if (s)
@@ -48,6 +48,14 @@ const areClaimsExpired = claims => catchErrors(() => {
 		throw new InvalidTokenError('Token or code has expired')
 })
 
+const verifyClientIds = ({ client_id, user_id, user_client_ids=[] }) => catchErrors(() => {
+	if (!user_client_ids.length)
+		throw new InternalServerError(`Corrupted data. Failed to associate client_ids with user_id ${user_id}.`)
+	
+	if (!user_client_ids.some(id => id == client_id))
+		throw new InvalidClientError('Invalid client_id')
+})
+
 module.exports = {
 	convert: {
 		thingToThings,
@@ -57,6 +65,7 @@ module.exports = {
 	verify: {
 		scopes: verifyScopes,
 		audiences: verifyAudiences,
-		claimsExpired: areClaimsExpired 
+		claimsExpired: areClaimsExpired,
+		clientId: verifyClientIds
 	}
 }

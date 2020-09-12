@@ -27,6 +27,7 @@
   "author": "Nicolas Dao",
   "license": "BSD-3-Clause",
   "dependencies": {
+    "passport": "^0.4.1",
     "puffy": "^1.2.1",
     "raw-body": "^2.4.1",
     "simple-template-utils": "0.0.6"

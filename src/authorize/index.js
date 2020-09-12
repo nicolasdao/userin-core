@@ -1,6 +1,6 @@
 const { config:{ prefixPathname } } = require('../_utils')
 
-const ENDPOINT = 'authorization' 
+const ENDPOINT = 'authorize' 
 
 module.exports = (app, eventHandlerStore, config) => {
 	const endpoint = prefixPathname(config, ENDPOINT)

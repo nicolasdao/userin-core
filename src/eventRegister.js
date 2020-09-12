@@ -1,6 +1,6 @@
 const { co } = require('core-async')
-const { error: { catchErrors, wrapErrors, HttpError } } = require('puffy')
-const { oauth2Params, error: { errorCode } } = require('./_utils')
+const { error: { catchErrors, wrapErrors } } = require('puffy')
+const { oauth2Params, error: { InternalServerError, InvalidRequestError } } = require('./_utils')
 const { Strategy, SUPPORTED_EVENTS } = require('./_core')
 
 function EventHandler(handler) {
@@ -30,7 +30,7 @@ const addGenerateAccessOrRefreshTokenHandler = type => eventHandlerStore => {
 	const handler = (root, { client_id, user_id, audiences, scopes, state }) => co(function *() {
 		const errorMsg = `Failed to generate ${type}`
 		if (!eventHandlerStore.generate_token)
-			throw new HttpError(`${errorMsg}. Missing 'generate_token' handler.`, ...errorCode.internal_server_error)
+			throw new InternalServerError(`${errorMsg}. Missing 'generate_token' handler.`)
 		
 		const claims = oauth2Params.convert.toOIDCClaims({ 
 			iss: process.env.ISS, 
@@ -59,21 +59,30 @@ const addGenerateIdTokenHandler = eventHandlerStore => {
 	const handler = (root, { client_id, user_id, audiences, scopes, state }) => co(function *() {
 		const errorMsg = 'Failed to generate id_token'
 		if (!eventHandlerStore.get_identity_claims)
-			throw new HttpError(`${errorMsg}. Missing 'get_identity_claims' handler.`, ...errorCode.internal_server_error)
+			throw new InternalServerError(`${errorMsg}. Missing 'get_identity_claims' handler.`)
 		if (!eventHandlerStore.generate_token)
-			throw new HttpError(`${errorMsg}. Missing 'generate_token' handler.`, ...errorCode.internal_server_error)
+			throw new InternalServerError(`${errorMsg}. Missing 'generate_token' handler.`)
 		
+		if (!client_id)
+			throw new InvalidRequestError(`${errorMsg}. Missing required 'client_id'.`)
+		if (!user_id)
+			throw new InvalidRequestError(`${errorMsg}. Missing required 'user_id'.`)
+
 		const [identityClaimsErrors, identityClaims={}] = yield eventHandlerStore.get_identity_claims.exec({ client_id, user_id, scopes, state })
 		if (identityClaimsErrors)
 			throw wrapErrors(errorMsg, identityClaimsErrors)
 
+		const [clientIdErrors] = oauth2Params.verify.clientId({ client_id, user_id, user_client_ids:identityClaims.client_ids })
+		if (clientIdErrors)
+			throw wrapErrors(errorMsg, clientIdErrors)
+					
 		const claims = oauth2Params.convert.toOIDCClaims({ 
 			iss: process.env.ISS, 
 			client_id, 
 			user_id, 
 			audiences, 
 			scopes,
-			extra: identityClaims
+			extra: identityClaims.claims||{}
 		}) 
 
 		const [errors, result] = yield eventHandlerStore.generate_token.exec({ type:'id_token', claims, state })
@@ -92,7 +101,7 @@ const addGenerateAuthorizationCodeHandler = eventHandlerStore => {
 	const handler = (root, { client_id, user_id, scopes, state }) => co(function *() {
 		const errorMsg = 'Failed to generate authorization code'
 		if (!eventHandlerStore.generate_token)
-			throw new HttpError(`${errorMsg}. Missing 'generate_token' handler.`, ...errorCode.internal_server_error)
+			throw new InternalServerError(`${errorMsg}. Missing 'generate_token' handler.`)
 		
 		const claims = oauth2Params.convert.toOIDCClaims({ 
 			iss: process.env.ISS, 

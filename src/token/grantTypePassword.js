@@ -51,7 +51,15 @@ const exec = (eventHandlerStore, { client_id, user, scopes, state }) => catchErr
 	if (userErrors)
 		throw wrapErrors(errorMsg, userErrors)
 	
-	// D. Generates tokens
+	// D. Validate that the client_id is allowed to process this user. 
+	if (!validUser)
+		throw new InternalServerError(`${errorMsg}. Corrupted data. Processing the end user failed to return any data.`)
+
+	const [clientIdErrors] = oauth2Params.verify.clientId({ client_id, user_id:validUser.id, user_client_ids:validUser.client_ids })
+	if (clientIdErrors)
+		throw wrapErrors(errorMsg, clientIdErrors)
+
+	// E. Generates tokens
 	const requestIdToken = scopes && scopes.indexOf('openid') >= 0
 	const config = { client_id, user_id:validUser.id, audiences:serviceAccount.audiences, scopes, state }
 	const [[accessTokenErrors, accessTokenResult], [idTokenErrors, idTokenResult]] = yield [

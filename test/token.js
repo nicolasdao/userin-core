@@ -448,7 +448,7 @@ describe('token', () => {
 				done()
 			}).catch(done)
 		})
-		it('06 - Should fail when the client_id does not exist.', done => {
+		it('06 - Should fail when the client_id is incorrect.', done => {
 
 			const eventHandlerStore = {}
 			registerAllHandlers(eventHandlerStore)
@@ -788,6 +788,24 @@ describe('token', () => {
 				assert.isOk(errors, '01')
 				assert.isOk(errors.length, '02')
 				assert.isOk(errors.some(e => e.message && e.message.indexOf('Access to scope restricted is not allowed') >= 0), '03')
+
+				done()
+			}).catch(done)
+		})
+		it('13 - Should fail when the client_id and client_secret are from an unauthorized account.', done => {
+
+			const eventHandlerStore = {}
+			registerAllHandlers(eventHandlerStore)
+
+			co(function *() {
+				const [errors] = yield grantTypePassword.exec(eventHandlerStore, {
+					...stubbedUser,
+					client_id: 'fraudster'
+				})
+					
+				assert.isOk(errors, '01')
+				assert.isOk(errors.length, '02')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Invalid client_id') >= 0), '03')
 
 				done()
 			}).catch(done)

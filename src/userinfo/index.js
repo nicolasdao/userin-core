@@ -61,8 +61,12 @@ const handler = (payload, eventHandlerStore, { authorization }) => catchErrors(c
 	if (identityClaimsErrors)
 		throw wrapErrors(errorMsg, identityClaimsErrors)
 
+	const [clientIdErrors] = oauth2Params.verify.clientId({ client_id, user_id, user_client_ids:identityClaims.client_ids })
+	if (clientIdErrors)
+		throw wrapErrors(errorMsg, clientIdErrors)
+
 	return {
-		...identityClaims,
+		...(identityClaims.claims||{}),
 		active:true
 	}
 }))
