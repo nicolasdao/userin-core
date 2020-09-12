@@ -16,16 +16,14 @@ const grantTypeClientCredentials = require('../src/token/grantTypeClientCredenti
 const grantTypePassword = require('../src/token/grantTypePassword')
 const grantTypeRefreshToken = require('../src/token/grantTypeRefreshToken')
 const eventRegister = require('../src/eventRegister')
-const handler = require('./mock/handler')
+const { MockStrategy } = require('./mock/handler')
 const tokenHelper = require('./mock/token')
+
+const strategy = new MockStrategy
 
 const registerAllHandlers = eventHandlerStore => {
 	const registerEventHandler = eventRegister(eventHandlerStore)
-	registerEventHandler('get_service_account', handler.get_service_account)
-	registerEventHandler('get_token_claims', handler.get_token_claims)
-	registerEventHandler('generate_token', handler.generate_token)
-	registerEventHandler('get_identity_claims', handler.get_identity_claims)
-	registerEventHandler('process_end_user', handler.process_end_user)
+	registerEventHandler(strategy)
 }
 
 describe('token', () => {
@@ -48,7 +46,7 @@ describe('token', () => {
 		it('02 - Should fail when the \'get_token_claims\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_service_account', handler.get_service_account)
+			registerEventHandler('get_service_account', strategy.get_service_account)
 			co(function *() {
 				const [errors] = yield grantTypeAuthorizationCode.exec(eventHandlerStore, stubbedPayload)
 				assert.isOk(errors, '01')
@@ -60,8 +58,8 @@ describe('token', () => {
 		it('03 - Should fail when the \'generate_token\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_service_account', handler.get_service_account)
-			registerEventHandler('get_token_claims', handler.get_token_claims)
+			registerEventHandler('get_service_account', strategy.get_service_account)
+			registerEventHandler('get_token_claims', strategy.get_token_claims)
 			co(function *() {
 				const [errors] = yield grantTypeAuthorizationCode.exec(eventHandlerStore, stubbedPayload)
 				assert.isOk(errors, '01')
@@ -369,7 +367,7 @@ describe('token', () => {
 		it('02 - Should fail when the \'generate_token\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_service_account', handler.get_service_account)
+			registerEventHandler('get_service_account', strategy.get_service_account)
 			co(function *() {
 				const [errors] = yield grantTypeClientCredentials.exec(eventHandlerStore, stubbedServiceAccount)
 				assert.isOk(errors, '01')
@@ -557,7 +555,7 @@ describe('token', () => {
 		it('02 - Should fail when the \'process_end_user\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_service_account', handler.get_service_account)
+			registerEventHandler('get_service_account', strategy.get_service_account)
 			co(function *() {
 				const [errors] = yield grantTypePassword.exec(eventHandlerStore, stubbedUser)
 				assert.isOk(errors, '01')
@@ -569,8 +567,8 @@ describe('token', () => {
 		it('03 - Should fail when the \'generate_token\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_service_account', handler.get_service_account)
-			registerEventHandler('process_end_user', handler.process_end_user)
+			registerEventHandler('get_service_account', strategy.get_service_account)
+			registerEventHandler('process_end_user', strategy.process_end_user)
 			co(function *() {
 				const [errors] = yield grantTypePassword.exec(eventHandlerStore, stubbedUser)
 				assert.isOk(errors, '01')
@@ -828,7 +826,7 @@ describe('token', () => {
 		it('02 - Should fail when the \'get_service_account\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_token_claims', handler.get_token_claims)
+			registerEventHandler('get_token_claims', strategy.get_token_claims)
 			co(function *() {
 				const [errors] = yield grantTypeRefreshToken.exec(eventHandlerStore, stubbedPayload)
 				assert.isOk(errors, '01')
@@ -840,8 +838,8 @@ describe('token', () => {
 		it('03 - Should fail when the \'generate_token\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_token_claims', handler.get_token_claims)
-			registerEventHandler('get_service_account', handler.get_service_account)
+			registerEventHandler('get_token_claims', strategy.get_token_claims)
+			registerEventHandler('get_service_account', strategy.get_service_account)
 			co(function *() {
 				const [errors] = yield grantTypeRefreshToken.exec(eventHandlerStore, stubbedPayload)
 				assert.isOk(errors, '01')

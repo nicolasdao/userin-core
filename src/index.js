@@ -7,6 +7,7 @@ const tokenApi = require('./token')
 const userinfoApi = require('./userinfo')
 const defaultConfig = require('./config')
 const eventRegister = require('./eventRegister')
+const pluginManager = require('./pluginManager')
 const { request: { getParams }, config:{ prefixPathname }, response: { formatResponseError } } = require('./_utils')
 
 const oauth2HttpHandlerFactory = (app, eventHandlerStore, config) => (method, endpointPathname, handler, context={}) => {
@@ -36,17 +37,17 @@ class UserIn extends express.Router {
 
 		const createHttpHandler = oauth2HttpHandlerFactory(this, eventHandlerStore, realConfig)
 
-		const endpoints = { issuer: realConfig.issuer }
-		endpoints.introspection_endpoint = createHttpHandler('post', introspectApi.endpoint, introspectApi.handler)
-		endpoints.token_endpoint = createHttpHandler('post', tokenApi.endpoint, tokenApi.handler)
-		endpoints.userinfo_endpoint = createHttpHandler('get', userinfoApi.endpoint, userinfoApi.handler)
-		endpoints.browse_endpoint = createHttpHandler('get', browseApi.endpoint, browseApi.handler, { endpoints })
-		endpoints.browse_redirect_endpoint = createHttpHandler('get', browseApi.redirect.endpoint, browseApi.redirect.handler, { endpoints })
-
-		// this configures the /.well-known/openid-configuration endpoint
-		createHttpHandler('get', configApi.endpoint, configApi.handler, { endpoints })
+		const context = { endpoints: { issuer: realConfig.issuer } }
+		context.endpoints.introspection_endpoint = createHttpHandler('post', introspectApi.endpoint, introspectApi.handler)
+		context.endpoints.token_endpoint = createHttpHandler('post', tokenApi.endpoint, tokenApi.handler)
+		context.endpoints.userinfo_endpoint = createHttpHandler('get', userinfoApi.endpoint, userinfoApi.handler)
+		context.endpoints.browse_redirect_endpoint = createHttpHandler('get', browseApi.redirect.endpoint, browseApi.redirect.handler, context)
+		context.endpoints.browse_endpoint = createHttpHandler('get', browseApi.endpoint, browseApi.handler, context)
+		context.endpoints.openidconfiguration_endpoint = createHttpHandler('get', configApi.endpoint, configApi.handler, context)
 		
 		this.on = registerEventHandler
+
+		this.use = pluginManager(eventHandlerStore)
 	}
 }
 

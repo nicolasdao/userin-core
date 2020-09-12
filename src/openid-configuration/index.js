@@ -10,10 +10,12 @@ const handler = (payload, eventHandlerStore, context={}) => catchErrors(co(funct
 	const fullyQualifiedEndpoints = {
 		issuer: context.endpoints.issuer,
 		authorization_endpoints: (context.endpoints.authorization_endpoints || []).map(e => getFullUrl(context.req, e)),
+		browse_endpoint: getFullUrl(context.req, context.endpoints.browse_endpoint),
+		browse_redirect_endpoint: getFullUrl(context.req, context.endpoints.browse_redirect_endpoint),
 		introspection_endpoint: getFullUrl(context.req, context.endpoints.introspection_endpoint),
+		openidconfiguration_endpoint: getFullUrl(context.req, context.endpoints.openidconfiguration_endpoint),
 		token_endpoint: getFullUrl(context.req, context.endpoints.token_endpoint),
-		userinfo_endpoint: getFullUrl(context.req, context.endpoints.userinfo_endpoint),
-		browse_endpoint: getFullUrl(context.req, context.endpoints.browse_endpoint)
+		userinfo_endpoint: getFullUrl(context.req, context.endpoints.userinfo_endpoint)
 	}
 
 	return fullyQualifiedEndpoints

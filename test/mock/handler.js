@@ -1,4 +1,5 @@
 const tokenHelper = require('./token')
+const { Strategy } = require('../../src/_core')
 
 const SCOPES = [
 	'profile',
@@ -105,6 +106,13 @@ const getAddressClaims = entity => {
 	}
 }
 
+class MockStrategy extends Strategy {
+	constructor() {
+		super()
+		this.name = 'mock'
+	}
+}
+
 /**
  * Gets the service account's audiences and scopes. 
  *  
@@ -115,7 +123,7 @@ const getAddressClaims = entity => {
  * @return {[String]}	output.audiences	Service account's audiences.	
  * @return {[String]}	output.scopes		Service account's scopes.	
  */
-const get_service_account = (root, { client_id, client_secret }) => {
+MockStrategy.prototype.get_service_account = (root, { client_id, client_secret }) => {
 	if (!client_id)
 		throw new Error('Missing required \'client_id\'')
 
@@ -147,7 +155,7 @@ const get_service_account = (root, { client_id, client_secret }) => {
  * @return {Object}		claims.client_id	String or number
  * @return {String}		claims.scope
  */
-const get_token_claims = (root, { type, token }) => {
+MockStrategy.prototype.get_token_claims = (root, { type, token }) => {
 	
 	if (!type)
 		throw new Error('Missing required \'type\'.')
@@ -172,7 +180,7 @@ const get_token_claims = (root, { type, token }) => {
  * @return {String}		output.token
  * @return {Number}		output.expires_in
  */
-const generate_token = (root, { type, claims }) => {
+MockStrategy.prototype.generate_token = (root, { type, claims }) => {
 	if (type != 'code' && type != 'access_token' && type != 'id_token' && type != 'refresh_token')
 		throw new Error(`Invalid 'type'. '${type}' is not supported. Valid values are: 'code', 'access_token', 'id_token', 'refresh_token'.`)
 
@@ -190,7 +198,7 @@ const generate_token = (root, { type, claims }) => {
  * 
  * @return {Object}		identityClaims		e.g., { given_name:'Nic', family_name:'Dao' }
  */
-const get_identity_claims = (root, { client_id, user_id, scopes }) => {
+MockStrategy.prototype.get_identity_claims = (root, { client_id, user_id, scopes }) => {
 	if (!client_id)
 		throw new Error('Missing required \'client_id\'')
 	if (!user_id)
@@ -230,7 +238,7 @@ const get_identity_claims = (root, { client_id, user_id, scopes }) => {
  * @return {Object}		user				This object should always defined the following properties at a mimumum.
  * @return {Object}		user.id				String ot number
  */
-const process_end_user = (root, { client_id, user }) => {
+MockStrategy.prototype.process_end_user = (root, { client_id, user }) => {
 	if (!client_id)
 		throw new Error('Missing required \'client_id\'')
 	if (!user)
@@ -256,7 +264,7 @@ const process_end_user = (root, { client_id, user }) => {
 	}
 }
 
-const process_fip_user = (root, { type, claims }) => {
+MockStrategy.prototype.process_fip_user = (root, { type, claims }) => {
 	if (type != 'code' && type != 'access_token' && type != 'id_token' && type != 'refresh_token')
 		throw new Error(`Invalid 'type'. '${type}' is not supported. Valid values are: 'code', 'access_token', 'id_token', 'refresh_token'.`)
 	
@@ -264,13 +272,8 @@ const process_fip_user = (root, { type, claims }) => {
 }
 
 module.exports = {
-	generate_token,
-	get_identity_claims,
-	getClaims: () => CLAIMS,
-	process_end_user,
-	process_fip_user,
-	get_service_account,
-	get_token_claims
+	MockStrategy,
+	getClaims: () => CLAIMS
 }
 
 

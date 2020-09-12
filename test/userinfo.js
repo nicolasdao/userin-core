@@ -13,16 +13,14 @@ const { assert } = require('chai')
 const { handler:userInfoHandler } = require('../src/userinfo')
 const grantTypePassword = require('../src/token/grantTypePassword')
 const eventRegister = require('../src/eventRegister')
-const handler = require('./mock/handler')
+const { MockStrategy } = require('./mock/handler')
 const tokenHelper = require('./mock/token')
+
+const strategy = new MockStrategy()
 
 const registerAllHandlers = eventHandlerStore => {
 	const registerEventHandler = eventRegister(eventHandlerStore)
-	registerEventHandler('get_service_account', handler.get_service_account)
-	registerEventHandler('get_token_claims', handler.get_token_claims)
-	registerEventHandler('generate_token', handler.generate_token)
-	registerEventHandler('get_identity_claims', handler.get_identity_claims)
-	registerEventHandler('process_end_user', handler.process_end_user)
+	registerEventHandler(strategy)
 }
 
 describe('userinfo', () => {
@@ -52,7 +50,7 @@ describe('userinfo', () => {
 		it('02 - Should fail when the \'get_identity_claims\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
-			registerEventHandler('get_token_claims', handler.get_token_claims)
+			registerEventHandler('get_token_claims', strategy.get_token_claims)
 			co(function *() {
 				const [errors] = yield userInfoHandler(null, eventHandlerStore, { authorization:'' })
 				assert.isOk(errors, '01')

@@ -4,25 +4,17 @@ const template = require('simple-template-utils')
 
 /**
  * Returns an HTML page that allows interaction with the OAuth2 endpoints. 
- * 
- * @param  {String} endpoints.discover_endpoint.method
- * @param  {String} endpoints.discover_endpoint.url
- * @param  {String} endpoints.discover_redirect_endpoint.method
- * @param  {String} endpoints.discover_redirect_endpoint.url
- * @param  {String} endpoints.token_endpoint.method
- * @param  {String} endpoints.token_endpoint.url
- * @param  {String} endpoints.userinfo_endpoint.method
- * @param  {String} endpoints.userinfo_endpoint.url
- * @param  {String} endpoints.introspection_endpoint.method
- * @param  {String} endpoints.introspection_endpoint.url
- * @param  {String} endpoints.authorization_facebook_endpoint.method
- * @param  {String} endpoints.authorization_facebook_endpoint.url
- * @param  {String} endpoints.authorization_google_endpoint.method
- * @param  {String} endpoints.authorization_google_endpoint.url
- * @param  {String} endpoints.authorization_github_endpoint.method
- * @param  {String} endpoints.authorization_github_endpoint.url
- * @param  {String} endpoints.authorization_linkedin_endpoint.method
- * @param  {String} endpoints.authorization_linkedin_endpoint.url
+ *
+ * @param  {String} endpoints.openidconfiguration_endpoint
+ * @param  {String} endpoints.browse_endpoint
+ * @param  {String} endpoints.browse_redirect_endpoint
+ * @param  {String} endpoints.token_endpoint
+ * @param  {String} endpoints.userinfo_endpoint
+ * @param  {String} endpoints.introspection_endpoint
+ * @param  {String} endpoints.authorization_facebook_endpoint
+ * @param  {String} endpoints.authorization_google_endpoint
+ * @param  {String} endpoints.authorization_github_endpoint
+ * @param  {String} endpoints.authorization_linkedin_endpoint
  * 
  * @param  {String} options.state
  * @param  {String} options.code
@@ -34,18 +26,16 @@ const template = require('simple-template-utils')
  * 
  * @return {String} html
  */
-const getDiscoverHtml = endpoints => co(function *() {
+const getBrowseHtml = endpoints => co(function *() {
 	endpoints = endpoints || {}
-	const { token_endpoint, discover_endpoint, discover_redirect_endpoint, userinfo_endpoint, introspection_endpoint } = endpoints
+	const { token_endpoint, browse_endpoint, browse_redirect_endpoint, userinfo_endpoint, introspection_endpoint, openidconfiguration_endpoint } = endpoints
 
-	const defaultRedirectUrl = 
-		discover_redirect_endpoint && discover_redirect_endpoint.url ? discover_redirect_endpoint.url : 
-			discover_endpoint && discover_endpoint.url ? discover_endpoint.url : null
+	const defaultRedirectUrl = browse_redirect_endpoint || browse_endpoint || null
 
 	const authorizationEndpoints = Object.keys(endpoints).reduce((acc, endpoint) => {
 		const strategy = (endpoint.match(/authorization_(.*?)_endpoint/) || [])[1]
-		if (strategy && endpoints[endpoint] && endpoints[endpoint].url)
-			acc.push({ strategy, url:endpoints[endpoint].url, defaultRedirectUrl })
+		if (strategy && endpoints[endpoint] && endpoints[endpoint])
+			acc.push({ strategy, url:endpoints[endpoint], defaultRedirectUrl })
 		return acc
 	}, [])
 
@@ -55,31 +45,33 @@ const getDiscoverHtml = endpoints => co(function *() {
 			data
 		})
 	})
-	
+
 	return yield template.compile({
-		template: path.join(__dirname, '../_page/discover.html'),
+		template: path.join(__dirname, '../_page/browse.html'),
 		data: {
-			tokenEndpoint: token_endpoint.url,
-			userInfoEdnpoint: userinfo_endpoint.url,
-			introspectionEdnpoint: introspection_endpoint.url,
-			authorizationEndpointsHtml: authorizationEndpointsHtml.join('\n')
+			openidConfigurationEndpoint: openidconfiguration_endpoint,
+			tokenEndpoint: token_endpoint,
+			userInfoEndpoint: userinfo_endpoint,
+			introspectionEndpoint: introspection_endpoint,
+			authorizationEndpointsHtml: authorizationEndpointsHtml.join('\n'),
+			openidConfiguration: JSON.stringify(endpoints, null, '  ')
 		}
 	})
 })
 
-const getResponseHtml = async discoverEndpointUrl => {
+const getBrowseRedirectHtml = async browseEndpointUrl => {
 	return await template.compile({
-		template: path.join(__dirname, '../_page/discoverRedirect.html'),
+		template: path.join(__dirname, '../_page/browseRedirect.html'),
 		data: {
-			discoverEndpointUrl
+			browseEndpointUrl
 		}
 	})
 }
 
 
 module.exports = {
-	getDiscoverHtml,
-	getResponseHtml
+	getBrowseHtml,
+	getBrowseRedirectHtml
 }
 
 

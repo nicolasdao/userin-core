@@ -1,19 +1,7 @@
 const { co } = require('core-async')
 const { error: { catchErrors, wrapErrors, HttpError } } = require('puffy')
 const { oauth2Params, error: { errorCode } } = require('./_utils')
-
-const SUPPORTED_EVENTS = [
-	'generate_token', 
-	'generate_id_token', 
-	'generate_access_token', 
-	'generate_refresh_token', 
-	'generate_authorization_code', 
-	'get_identity_claims', 
-	'process_end_user', 
-	'process_fip_user', 
-	'get_service_account',
-	'get_token_claims'
-]
+const { Strategy, SUPPORTED_EVENTS } = require('./_core')
 
 function EventHandler(handler) {
 	let _this = this
@@ -37,6 +25,8 @@ function EventHandler(handler) {
 
 const addGenerateAccessOrRefreshTokenHandler = type => eventHandlerStore => {
 	const eventName = `generate_${type}`
+	if (eventHandlerStore[eventName])
+		return
 	const handler = (root, { client_id, user_id, audiences, scopes, state }) => co(function *() {
 		const errorMsg = `Failed to generate ${type}`
 		if (!eventHandlerStore.generate_token)
@@ -64,6 +54,8 @@ const addGenerateAccessTokenHandler = addGenerateAccessOrRefreshTokenHandler('ac
 const addGenerateRefreshTokenHandler = addGenerateAccessOrRefreshTokenHandler('refresh_token')
 const addGenerateIdTokenHandler = eventHandlerStore => {
 	const eventName = 'generate_id_token'
+	if (eventHandlerStore[eventName])
+		return
 	const handler = (root, { client_id, user_id, audiences, scopes, state }) => co(function *() {
 		const errorMsg = 'Failed to generate id_token'
 		if (!eventHandlerStore.get_identity_claims)
@@ -95,6 +87,8 @@ const addGenerateIdTokenHandler = eventHandlerStore => {
 }
 const addGenerateAuthorizationCodeHandler = eventHandlerStore => {
 	const eventName = 'generate_authorization_code'
+	if (eventHandlerStore[eventName])
+		return
 	const handler = (root, { client_id, user_id, scopes, state }) => co(function *() {
 		const errorMsg = 'Failed to generate authorization code'
 		if (!eventHandlerStore.generate_token)
@@ -117,6 +111,23 @@ const addGenerateAuthorizationCodeHandler = eventHandlerStore => {
 	eventHandlerStore[eventName] = new EventHandler(handler)
 }
 
+const registerSingleEvent = eventHandlerStore => (eventName, handler) => {
+	if (!eventName)
+		throw new Error('Missing required \'eventName\'')
+	if (!handler)
+		throw new Error('Missing required \'handler\'')
+	if (typeof(handler) != 'function')
+		throw new Error(`Invalid 'handler'. Expect 'handler' to be a function, but found ${typeof(handler)} instead.`)
+
+	if (SUPPORTED_EVENTS.indexOf(eventName) < 0)
+		throw new Error(`Invalid 'eventName'. ${eventName} is not supported. Expect 'eventName' to be equal to one of the following values: ${SUPPORTED_EVENTS.join(', ')}.`)
+
+	if (eventHandlerStore[eventName])
+		eventHandlerStore[eventName].addHandler(handler)
+	else
+		eventHandlerStore[eventName] = new EventHandler(handler)
+}
+
 module.exports = eventHandlerStore => {
 	if (!eventHandlerStore)
 		throw new Error('Missing required \'eventHandlerStore\'')
@@ -128,21 +139,32 @@ module.exports = eventHandlerStore => {
 	addGenerateIdTokenHandler(eventHandlerStore)
 	addGenerateAuthorizationCodeHandler(eventHandlerStore)
 
-	return (eventName, handler) => {
-		if (!eventName)
-			throw new Error('Missing required \'eventName\'')
-		if (!handler)
-			throw new Error('Missing required \'handler\'')
-		if (typeof(handler) != 'function')
-			throw new Error(`Invalid 'handler'. Expect 'handler' to be a function, but found ${typeof(handler)} instead.`)
+	const registerEvent = registerSingleEvent(eventHandlerStore)
 
-		if (SUPPORTED_EVENTS.indexOf(eventName) < 0)
-			throw new Error(`Invalid 'eventName'. ${eventName} is not supported. Expect 'eventName' to be equal to one of the following values: ${SUPPORTED_EVENTS.join(', ')}.`)
-
-		if (eventHandlerStore[eventName])
-			eventHandlerStore[eventName].addHandler(handler)
-		else
-			eventHandlerStore[eventName] = new EventHandler(handler)
+	/**
+	 * Registers one or many event handlers to the 'eventHandlerStore'. 
+	 *
+	 * 1st arity:
+	 * ==========
+	 * @param  {Strategy}	strategyHandler		This object is a concrete implementation of the UserIn Startegy class. It
+	 *                                     		defines all handlers. 
+	 * @return {Void}
+	 *
+	 * 2nd arity:
+	 * ==========
+	 * @param  {String}		eventName			One of the allowed event as defined in SUPPORTED_EVENTS. 
+	 * @param  {Function}	handler				Event handler for that event.
+	 * 
+	 * @return {Void}
+	 */
+	return (...args) => {
+		const strategyHandler = args[0]
+		if (strategyHandler && strategyHandler instanceof Strategy)
+			SUPPORTED_EVENTS.forEach(eventName => registerEvent(eventName, strategyHandler[eventName]))
+		else {
+			const [eventName, handler] = args
+			registerEvent(eventName, handler)
+		}
 	}
 }
 

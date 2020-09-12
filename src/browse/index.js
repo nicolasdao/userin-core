@@ -1,7 +1,8 @@
 const { co } = require('core-async')
 const { error: { catchErrors } } = require('puffy')
 const { request: { getFullUrl } } = require('../_utils')
-const { getResponseHtml, getDiscoverHtml } = require('./page')
+const { getBrowseRedirectHtml, getBrowseHtml } = require('./page')
+const openidConfiguration = require('../openid-configuration')
 
 const endpoint = 'browse' 
 const endpointRedirect = 'browse/redirect' 
@@ -17,48 +18,10 @@ const endpointRedirect = 'browse/redirect'
  * @yield {String}		HTMLpage
  */
 const handler = (payload, eventHandlerStore, context={}) => catchErrors(co(function *() {
-	const {
-		issuer,
-		authorization_endpoints=[],
-		introspection_endpoint,
-		token_endpoint,
-		userinfo_endpoint
-	} = context.endpoints
 
-	const detailedEndpoints = {
-		issuer,
-		// jwks_uri: `${baseUrl}/keys`,
-		// introspection_endpoint: `${baseUrl}/introspection`,
-		// userinfo_endpoint: `${baseUrl}/userinfo`,
-		token_endpoint: {
-			method: 'POST',
-			url: getFullUrl(context.req, token_endpoint)
-		},
-		discover_endpoint: {
-			method: 'GET',
-			url: getFullUrl(context.req, endpoint)
-		},
-		discover_redirect_endpoint: {
-			method: 'GET',
-			url: getFullUrl(context.req, endpointRedirect)
-		},
-		userinfo_endpoint: {
-			method: 'GET',
-			url: getFullUrl(context.req, userinfo_endpoint)
-		},
-		introspection_endpoint: {
-			method: 'POST',
-			url: getFullUrl(context.req, introspection_endpoint)
-		}
-	}
-	for (let authorization_endpoint of authorization_endpoints) {
-		detailedEndpoints[authorization_endpoint] = {
-			method: 'GET',
-			url: getFullUrl(context.req, authorization_endpoint)
-		}
-	}
+	const [, detailedEndpoints] = yield openidConfiguration.handler(payload, eventHandlerStore, context)
 
-	const html = yield getDiscoverHtml(detailedEndpoints, payload)
+	const html = yield getBrowseHtml(detailedEndpoints, payload)
 
 	return html
 }))
@@ -74,8 +37,8 @@ const handler = (payload, eventHandlerStore, context={}) => catchErrors(co(funct
  * @yield {String}		HTMLpage
  */
 const handlerRedirect = (payload, eventHandlerStore, context={}) => catchErrors(co(function *() {
-	const discoverEndpointUrl = getFullUrl(context.req, context.endpoints.browse_endpoint)
-	const html = yield getResponseHtml(discoverEndpointUrl)
+	const browseEndpointUrl = getFullUrl(context.req, context.endpoints.browse_endpoint)
+	const html = yield getBrowseRedirectHtml(browseEndpointUrl)
 	return html
 }))
 

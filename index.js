@@ -1,7 +1,11 @@
 const express = require('express')
 const app = express()
 const UserIn = require('./src')
+const { MockStrategy } = require('./test/mock/handler')
 
-app.use(new UserIn())
+const userIn = new UserIn()
+userIn.use(new MockStrategy())
 
-app.listen(3000)
+app.use(userIn)
+
+app.listen(3330)
