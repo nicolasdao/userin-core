@@ -10,20 +10,24 @@ const TRACE_ON = process.env.LOG_LEVEL == 'trace'
 /**
  * Verifies that a token is valid and returns the claims associated with that token if it is valid. 
  * 												
- * @param {String}	payload.client_id							
- * @param {String}	payload.client_secret							
- * @param {String}	payload.token							
- * @param {String}	payload.token_type_hint	
- * @param {Object}	eventHandlerStore                         					    						
+ * @param {String}		payload.client_id							
+ * @param {String}		payload.client_secret							
+ * @param {String}		payload.token							
+ * @param {String}		payload.token_type_hint	
+ * @param {Object}		eventHandlerStore
+ * @param {Object}		context.endpoints			Object containing all the OIDC endpoints (pathname only)
+ * @param {Request}		context.req					Express Request
+ * @param {Response}	context.res					Express Response
+ * @param {String}		context.authorization		HTTP Authorization header value (e.g., 'Bearer 12345')                 					    						
  *  
- * @yield {[Error]}	output[0]						Array of errors
- * @return {String}	output[1].iss			
- * @return {Object}	output[1].sub			String or number
- * @return {String}	output[1].aud
- * @return {Number}	output[1].exp
- * @return {Number}	output[1].iat
- * @return {Object}	output[1].client_id		String or number
- * @return {String}	output[1].scope
+ * @yield {[Error]}		output[0]					Array of errors
+ * @return {String}		output[1].iss			
+ * @return {Object}		output[1].sub				String or number
+ * @return {String}		output[1].aud
+ * @return {Number}		output[1].exp
+ * @return {Number}		output[1].iat
+ * @return {Object}		output[1].client_id			String or number
+ * @return {String}		output[1].scope
  */
 const handler = (payload={}, eventHandlerStore={}) => catchErrors(co(function *() {
 	const { client_id, client_secret, token, token_type_hint } = payload

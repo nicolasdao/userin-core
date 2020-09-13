@@ -8,14 +8,22 @@
 const getRawBody = require('raw-body')
 const { url } = require('puffy')
 
+/**
+ * Gets the request's origin (e.g., https://example.com)
+ * 
+ * @param  {Request} req
+ * 
+ * @return {String}
+ */
 const getOrigin = req => {
+	const isLocalhost = (req.headers.host || '').indexOf('localhost') >= 0
 	const protocol = req.protocol === 'http' 
 		? 'http' 
 		: req.protocol === 'https' 
 			? 'https' 
 			: typeof(req.secure) == 'boolean' 
 				? (req.secure ? 'https' : 'http')
-				: 'https'
+				: (isLocalhost ? 'http:' : 'https:')
 
 	const origin = `${protocol}://${req.headers.host}`
 
@@ -25,6 +33,26 @@ const getOrigin = req => {
 const getFullUrl = (req, pathname) => {
 	const origin = getOrigin(req)
 	return url.buildUrl({ origin, pathname })
+}
+
+/**
+ * Gets the request's URL info
+ * 
+ * @param  {Request} 	req
+ * 
+ * @return {String}		output.protocol
+ * @return {String}		output.host
+ * @return {String}		output.origin
+ * @return {String}		output.pathname
+ * @return {Object}		output.query
+ */
+const getUrlInfo = req => {
+	const origin = getOrigin(req)
+
+	return url.getInfo(url.buildUrl({
+		origin,
+		pathname: req.originalUrl
+	}))
 }
 
 /*eslint-disable */
@@ -162,6 +190,7 @@ const getParams = (req, debugFn) => {
 
 module.exports = {
 	getOrigin,
+	getUrlInfo,
 	getFullUrl,
 	getParams
 }

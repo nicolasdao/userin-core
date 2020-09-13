@@ -1,14 +1,19 @@
 const { co } = require('core-async')
 const { error: { catchErrors, wrapErrors } } = require('puffy')
-const { error: { InternalServerError, InvalidRequestError }, oauth2Params } = require('../_utils')
+const { verifyScopes } = require('./_utils')
+const { 
+	oauth2Params,
+	error: { InvalidRequestError, InternalServerError } } = require('../_utils')
 
 /**
- * Creates a new access token using username and password.
- * 	
- * @param {String}		client_id	
- * @param {String}		user.username
- * @param {String}		user.password	
- * @param {[String]}	scopes	
+ * Processes the user received from the FIP
+ * 
+ * @param {Object}		user
+ * @param {Object}		user.id					String or number
+ * @param {String}		client_id				
+ * @param {String}		strategy				e.g., 'default', 'facebook'
+ * @param {String}		response_type			e.g., 'code+id_token'
+ * @param {String}		scopes
  * @param {String}		state
  * 
  * @yield {[Error]}		output[0]
@@ -18,47 +23,47 @@ const { error: { InternalServerError, InvalidRequestError }, oauth2Params } = re
  * @yield {String}		output[1].id_token
  * @yield {String}		output[1].scope
  */
-const exec = (eventHandlerStore, { client_id, user, scopes, state }) => catchErrors(co(function *() {
-	const errorMsg = 'Failed to acquire tokens for grant_type \'password\''
+const processTheFIPuser = ({ user, strategy, client_id, response_type, scopes, state }, eventHandlerStore={}) => catchErrors(co(function *() {
+	const errorMsg = `Failed to process ${strategy} user`
 	// A. Validates input
 	if (!eventHandlerStore.get_service_account)
 		throw new InternalServerError(`${errorMsg}. Missing 'get_service_account' handler.`)
-	if (!eventHandlerStore.get_end_user)
-		throw new InternalServerError(`${errorMsg}. Missing 'get_end_user' handler.`)
+	if (!eventHandlerStore.get_fip_user)
+		throw new InternalServerError(`${errorMsg}. Missing 'get_fip_user' handler.`)
 	if (!eventHandlerStore.generate_token)
 		throw new InternalServerError(`${errorMsg}. Missing 'generate_token' handler.`)
-
-	if (!client_id)
-		throw new InvalidRequestError(`${errorMsg}. Missing required 'client_id'`)
+	
 	if (!user)
-		throw new InvalidRequestError(`${errorMsg}. Missing required 'user'`)
-	if (!user.username)
-		throw new InvalidRequestError(`${errorMsg}. Missing required 'user.username'`)
-	if (!user.password)
-		throw new InvalidRequestError(`${errorMsg}. Missing required 'user.password'`)
+		throw new InvalidRequestError(`${errorMsg}. Missing required 'user' argument.`)
+	if (typeof(user) != 'object')
+		throw new InvalidRequestError(`${errorMsg}. The 'user' argument must be an object.`)
+	if (!user.id)
+		throw new InvalidRequestError(`${errorMsg}. Missing required 'id' property in the 'user' object.`)
+	if (!strategy)
+		throw new InvalidRequestError(`${errorMsg}. Missing required 'strategy' argument.`)
+	
+	const [responseTypeErrors] = oauth2Params.convert.responseTypeToTypes(response_type)
+	if (responseTypeErrors)
+		throw wrapErrors(errorMsg, responseTypeErrors)
 
 	// B. Verifying those scopes are allowed for that client_id
-	const [serviceAccountErrors, serviceAccount] = yield eventHandlerStore.get_service_account.exec({ client_id })
+	const [serviceAccountErrors, serviceAccount] = yield verifyScopes(eventHandlerStore, { client_id, scopes })
 	if (serviceAccountErrors)
 		throw wrapErrors(errorMsg, serviceAccountErrors)
 
-	const [scopeErrors] = oauth2Params.verify.scopes({ scopes, serviceAccountScopes:serviceAccount.scopes })
-	if (scopeErrors)
-		throw wrapErrors(errorMsg, scopeErrors)
-
 	// C. Processes user
-	const [userErrors, validUser] = yield eventHandlerStore.get_end_user.exec({ client_id, user, state })
+	const [userErrors, validUser] = yield eventHandlerStore.get_fip_user.exec({ client_id, strategy, user, state })
 	if (userErrors)
 		throw wrapErrors(errorMsg, userErrors)
-	
+
 	// D. Validate that the client_id is allowed to process this user. 
 	if (!validUser)
-		throw new InternalServerError(`${errorMsg}. Corrupted data. Processing the end user failed to return any data.`)
+		throw new InternalServerError(`${errorMsg}. Corrupted data. Processing the FIP user failed to return any data.`)
 
 	const [clientIdErrors] = oauth2Params.verify.clientId({ client_id, user_id:validUser.id, user_client_ids:validUser.client_ids })
 	if (clientIdErrors)
 		throw wrapErrors(errorMsg, clientIdErrors)
-
+	
 	// E. Generates tokens
 	const requestIdToken = scopes && scopes.indexOf('openid') >= 0
 	const config = { client_id, user_id:validUser.id, audiences:serviceAccount.audiences, scopes, state }
@@ -79,9 +84,7 @@ const exec = (eventHandlerStore, { client_id, user, scopes, state }) => catchErr
 	}
 }))
 
+module.exports = processTheFIPuser
 
-module.exports = {
-	exec
-}
 
 

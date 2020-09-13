@@ -552,7 +552,7 @@ describe('token', () => {
 				done()
 			}).catch(done)
 		})
-		it('02 - Should fail when the \'process_end_user\' event handler is not defined.', done => {
+		it('02 - Should fail when the \'get_end_user\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
 			registerEventHandler('get_service_account', strategy.get_service_account)
@@ -560,7 +560,7 @@ describe('token', () => {
 				const [errors] = yield grantTypePassword.exec(eventHandlerStore, stubbedUser)
 				assert.isOk(errors, '01')
 				assert.isOk(errors.length, '02')
-				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing \'process_end_user\' handler') >= 0), '03')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing \'get_end_user\' handler') >= 0), '03')
 				done()
 			}).catch(done)
 		})
@@ -568,7 +568,7 @@ describe('token', () => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
 			registerEventHandler('get_service_account', strategy.get_service_account)
-			registerEventHandler('process_end_user', strategy.process_end_user)
+			registerEventHandler('get_end_user', strategy.get_end_user)
 			co(function *() {
 				const [errors] = yield grantTypePassword.exec(eventHandlerStore, stubbedUser)
 				assert.isOk(errors, '01')

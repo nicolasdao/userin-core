@@ -11,17 +11,23 @@ const endpointRedirect = 'browse/redirect'
  * Creates HTML pages that help browsing the OIDC complient APIs. 
  * 
  * @param {Object}		payload
- * @param {Object}		eventHandlerStore		Useless in this case.
- * @param {Object}		context.endpoints
- * @param {Request}		context.req		
+ * @param {Object}		eventHandlerStore
+ * @param {Object}		context.endpoints			Object containing all the OIDC endpoints (pathname only)
+ * @param {Request}		context.req					Express Request
+ * @param {Response}	context.res					Express Response
+ * @param {String}		context.authorization		HTTP Authorization header value (e.g., 'Bearer 12345')
  * 
  * @yield {String}		HTMLpage
  */
 const handler = (payload, eventHandlerStore, context={}) => catchErrors(co(function *() {
 
-	const [, detailedEndpoints] = yield openidConfiguration.handler(payload, eventHandlerStore, context)
+	const [[, oidcEndpoints], [, detailedEndpoints]] = yield [
+		openidConfiguration.handler(payload, eventHandlerStore, context),
+		openidConfiguration.handler(payload, eventHandlerStore, { ...context, includeNonStandard:true })
+	]
 
-	const html = yield getBrowseHtml(detailedEndpoints, payload)
+
+	const html = yield getBrowseHtml(detailedEndpoints, oidcEndpoints, payload)
 
 	return html
 }))

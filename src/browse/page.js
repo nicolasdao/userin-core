@@ -26,7 +26,7 @@ const template = require('simple-template-utils')
  * 
  * @return {String} html
  */
-const getBrowseHtml = endpoints => co(function *() {
+const getBrowseHtml = (endpoints, oidcEndpoints) => co(function *() {
 	endpoints = endpoints || {}
 	const { token_endpoint, browse_endpoint, browse_redirect_endpoint, userinfo_endpoint, introspection_endpoint, openidconfiguration_endpoint } = endpoints
 
@@ -54,7 +54,7 @@ const getBrowseHtml = endpoints => co(function *() {
 			userInfoEndpoint: userinfo_endpoint,
 			introspectionEndpoint: introspection_endpoint,
 			authorizationEndpointsHtml: authorizationEndpointsHtml.join('\n'),
-			openidConfiguration: JSON.stringify(endpoints, null, '  ')
+			openidConfiguration: JSON.stringify(oidcEndpoints, null, '  ')
 		}
 	})
 })

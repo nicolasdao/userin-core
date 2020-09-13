@@ -11,7 +11,7 @@
 const { co } = require('core-async')
 const jwt = require('jsonwebtoken')
 const { assert } = require('chai')
-const { processTheFIPuser } = require('../src/authorize/OAuth2Authenticator')
+const processTheFIPuser = require('../src/authorize/processTheFIPuser')
 const eventRegister = require('../src/eventRegister')
 const { MockStrategy } = require('./mock/handler')
 
@@ -37,7 +37,7 @@ describe('authorize', () => {
 				done()
 			}).catch(done)
 		})
-		it('02 - Should fail when the \'process_fip_user\' event handler is not defined.', done => {
+		it('02 - Should fail when the \'get_fip_user\' event handler is not defined.', done => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
 			registerEventHandler('get_service_account', strategy.get_service_account)
@@ -45,7 +45,7 @@ describe('authorize', () => {
 				const [errors] = yield processTheFIPuser(payload, eventHandlerStore)
 				assert.isOk(errors, '01')
 				assert.isOk(errors.length, '02')
-				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing \'process_fip_user\' handler') >= 0), '03')
+				assert.isOk(errors.some(e => e.message && e.message.indexOf('Missing \'get_fip_user\' handler') >= 0), '03')
 				done()
 			}).catch(done)
 		})
@@ -53,7 +53,7 @@ describe('authorize', () => {
 			const eventHandlerStore = {}
 			const registerEventHandler = eventRegister(eventHandlerStore)
 			registerEventHandler('get_service_account', strategy.get_service_account)
-			registerEventHandler('process_fip_user', strategy.process_fip_user)
+			registerEventHandler('get_fip_user', strategy.get_fip_user)
 			co(function *() {
 				const [errors] = yield processTheFIPuser(payload, eventHandlerStore)
 				assert.isOk(errors, '01')

@@ -9,13 +9,16 @@ const TRACE_ON = process.env.LOG_LEVEL == 'trace'
 /**
  * Gets the userinfo 
  * 					
- * @param {Object}	payload							Not needed with this method.
- * @param {Object}	eventHandlerStore   
- * @param {String}	authorization   	    		Authorization header (e.g., 'Bearer 12345')
+ * @param {Object}		payload						Not needed with this method.
+ * @param {Object}		eventHandlerStore
+ * @param {Object}		context.endpoints			Object containing all the OIDC endpoints (pathname only)
+ * @param {Request}		context.req					Express Request
+ * @param {Response}	context.res					Express Response
+ * @param {String}		context.authorization		HTTP Authorization header value (e.g., 'Bearer 12345')
  *  
- * @yield {[Error]}	output[0]						Array of errors
- * @yield {Boolean}	output[1].active
- * @yield {Boolean}	output[1]...					The rest of the properties depends on the scopes associated with the 
+ * @yield {[Error]}		output[0]					Array of errors
+ * @yield {Boolean}		output[1].active
+ * @yield {Boolean}		output[1]...				The rest of the properties depends on the scopes associated with the 
  *        											access_token. 
  */
 const handler = (payload, eventHandlerStore, { authorization }) => catchErrors(co(function *() {

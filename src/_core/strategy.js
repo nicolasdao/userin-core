@@ -2,8 +2,8 @@
 const SUPPORTED_EVENTS = [
 	'generate_token', 
 	'get_identity_claims', 
-	'process_end_user', 
-	'process_fip_user', 
+	'get_end_user', 
+	'get_fip_user', 
 	'get_service_account',
 	'get_token_claims'
 ]

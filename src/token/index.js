@@ -14,26 +14,30 @@ const TRACE_ON = process.env.LOG_LEVEL == 'trace'
 /**
  * Get OAuth2 tokens
  * 					
- * @param {String}	payload.grant_type				Valid values: 'client_credentials', 'password', 'authorization_code', 'refresh_token'			
- * @param {String}	payload.username							
- * @param {String}	payload.password							
- * @param {String}	payload.client_id							
- * @param {String}	payload.client_secret							
- * @param {String}	payload.refresh_token							
- * @param {String}	payload.code	
- * @param {String}	payload.state	
- * @param {String}	payload.scope							
- * @param {Object}	payload.data					Random data. Usefull to support user sign up when we need their first name, last name, ... 
+ * @param {String}		payload.grant_type			Valid values: 'client_credentials', 'password', 'authorization_code', 'refresh_token'			
+ * @param {String}		payload.username							
+ * @param {String}		payload.password							
+ * @param {String}		payload.client_id							
+ * @param {String}		payload.client_secret							
+ * @param {String}		payload.refresh_token							
+ * @param {String}		payload.code	
+ * @param {String}		payload.state	
+ * @param {String}		payload.scope							
+ * @param {Object}		payload.data				Random data. Usefull to support user sign up when we need their first name, last name, ... 
  *                          					   	However, this is not OIDC compliant. 	
- * @param {Object}	eventHandlerStore                         					    						
+ * @param {Object}		eventHandlerStore
+ * @param {Object}		context.endpoints			Object containing all the OIDC endpoints (pathname only)
+ * @param {Request}		context.req					Express Request
+ * @param {Response}	context.res					Express Response
+ * @param {String}		context.authorization		HTTP Authorization header value (e.g., 'Bearer 12345')				
  *  
- * @yield {[Error]}	output[0]						Array of errors
- * @yield {String}	output[1].access_token
- * @yield {String}	output[1].token_type			'bearer'
- * @yield {Number}	output[1].expires_in
- * @yield {String}	output[1].id_token
- * @yield {String}	output[1].refresh_token
- * @yield {String}	output[1].scope
+ * @yield {[Error]}		output[0]					Array of errors
+ * @yield {String}		output[1].access_token
+ * @yield {String}		output[1].token_type		'bearer'
+ * @yield {Number}		output[1].expires_in
+ * @yield {String}		output[1].id_token
+ * @yield {String}		output[1].refresh_token
+ * @yield {String}		output[1].scope
  */
 const handler = (payload={}, eventHandlerStore={}) => catchErrors(co(function *() {
 	const { grant_type, username, password, client_id, client_secret, refresh_token, code, state, scope, data:extraData } = payload

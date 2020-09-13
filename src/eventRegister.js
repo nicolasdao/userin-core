@@ -120,6 +120,26 @@ const addGenerateAuthorizationCodeHandler = eventHandlerStore => {
 	eventHandlerStore[eventName] = new EventHandler(handler)
 }
 
+const addProcessFIPauthResponseHandler = eventHandlerStore => {
+	const eventName = 'process_fip_auth_response'
+	if (eventHandlerStore[eventName])
+		return
+	const handler = (root, { accessToken, refreshToken, profile }) => co(function *() {
+		yield Promise.resolve(null)
+		
+		const id = profile.id
+		const { givenName: firstName, middleName, familyName: lastName } = profile.name || {}
+		const email = ((profile.emails || [])[0] || {}).value || null
+		const profileImg = ((profile.photos || [])[0] || {}).value
+
+		const user = { id, firstName, middleName, lastName, email, profileImg, accessToken, refreshToken }
+
+		return user
+	})
+
+	eventHandlerStore[eventName] = new EventHandler(handler)
+}
+
 const registerSingleEvent = eventHandlerStore => (eventName, handler) => {
 	if (!eventName)
 		throw new Error('Missing required \'eventName\'')
@@ -128,7 +148,9 @@ const registerSingleEvent = eventHandlerStore => (eventName, handler) => {
 	if (typeof(handler) != 'function')
 		throw new Error(`Invalid 'handler'. Expect 'handler' to be a function, but found ${typeof(handler)} instead.`)
 
-	if (SUPPORTED_EVENTS.indexOf(eventName) < 0)
+	const supportedEvents = [...SUPPORTED_EVENTS, 'process_fip_auth_response']
+
+	if (supportedEvents.indexOf(eventName) < 0)
 		throw new Error(`Invalid 'eventName'. ${eventName} is not supported. Expect 'eventName' to be equal to one of the following values: ${SUPPORTED_EVENTS.join(', ')}.`)
 
 	if (eventHandlerStore[eventName])
@@ -147,6 +169,7 @@ module.exports = eventHandlerStore => {
 	addGenerateRefreshTokenHandler(eventHandlerStore)
 	addGenerateIdTokenHandler(eventHandlerStore)
 	addGenerateAuthorizationCodeHandler(eventHandlerStore)
+	addProcessFIPauthResponseHandler(eventHandlerStore)
 
 	const registerEvent = registerSingleEvent(eventHandlerStore)
 
@@ -162,11 +185,13 @@ module.exports = eventHandlerStore => {
 	 * 2nd arity:
 	 * ==========
 	 * @param  {String}		eventName			One of the allowed event as defined in SUPPORTED_EVENTS. 
-	 * @param  {Function}	handler				Event handler for that event.
+	 * @param  {Function}	handler				(root: Object, input: Object): Object 
+	 *                               			where 'root' is the result from previous handler if multiple handlers have been
+	 *                               			defined for the same 'eventName'. 
 	 * 
 	 * @return {Void}
 	 */
-	return (...args) => {
+	const registerEventHandler = (...args) => {
 		const strategyHandler = args[0]
 		if (strategyHandler && strategyHandler instanceof Strategy)
 			SUPPORTED_EVENTS.forEach(eventName => registerEvent(eventName, strategyHandler[eventName]))
@@ -175,6 +200,8 @@ module.exports = eventHandlerStore => {
 			registerEvent(eventName, handler)
 		}
 	}
+
+	return registerEventHandler
 }
 
 

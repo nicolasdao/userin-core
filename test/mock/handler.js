@@ -247,7 +247,7 @@ MockStrategy.prototype.get_identity_claims = (root, { user_id, scopes }) => {
  * @return {Object}		user.id				String ot number
  * @return {[Object]}	user.client_ids		
  */
-MockStrategy.prototype.process_end_user = (root, { user }) => {
+MockStrategy.prototype.get_end_user = (root, { user }) => {
 	if (!user)
 		throw new Error('Missing required \'user\'')
 	if (!user.username)
@@ -283,7 +283,7 @@ MockStrategy.prototype.process_end_user = (root, { user }) => {
  * @return {Object}		user.id				String ot number
  * @return {[Object]}	user.client_ids		
  */
-MockStrategy.prototype.process_fip_user = (root, { strategy, user }) => {
+MockStrategy.prototype.get_fip_user = (root, { strategy, user }) => {
 	if (!user)
 		throw new Error('Missing required \'user\'')
 	if (!user.id)
