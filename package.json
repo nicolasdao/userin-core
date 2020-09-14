@@ -1,7 +1,7 @@
 {
   "name": "userin-core",
   "version": "0.0.1",
-  "description": "UserIn core component to build an OAuth 2.0 OpenID Connect web API that supports integration with the most popular Federated Identity Providers (e.g., Google, Facebook, GitHub)",
+  "description": "UserIn core component used to build UserIn plugins",
   "main": "src/index.js",
   "repository": {
     "type": "git",
@@ -12,12 +12,9 @@
   },
   "homepage": "https://github.com/nicolasdao/userin-core#readme",
   "scripts": {
-    "dev": "TZ=UTC NODE_ENV=dev node-dev -r dotenv/config index.js",
-    "lint": "eslint index.js src/ test/ --fix",
+    "lint": "eslint src/ --fix",
     "push": "git push --follow-tags origin master",
     "rls": "standard-version --release-as",
-    "start": "TZ=UTC NODE_ENV=production node -r dotenv/config index.js",
-    "test": "mocha --exit",
     "v": "node -e \"console.log(require('./package.json').version)\""
   },
   "keywords": [
@@ -26,21 +23,9 @@
   ],
   "author": "Nicolas Dao",
   "license": "BSD-3-Clause",
-  "dependencies": {
-    "passport": "^0.4.1",
-    "puffy": "^1.2.1",
-    "raw-body": "^2.4.1",
-    "simple-template-utils": "0.0.6"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "chai": "^4.2.0",
-    "dotenv": "^8.2.0",
     "eslint": "^7.8.1",
-    "express": "^4.17.1",
-    "jsonwebtoken": "^8.5.1",
-    "mocha": "^8.1.3",
-    "node-dev": "^5.2.0",
-    "passport-facebook": "^3.0.0",
     "standard-version": "^9.0.0"
   }
 }
