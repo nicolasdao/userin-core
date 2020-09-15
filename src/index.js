@@ -1,4 +1,5 @@
 module.exports = {
 	...require('./strategy'),
-	error: require('./error')
+	error: require('./error'),
+	token: require('./token')
 }
