@@ -1,11 +1,12 @@
 
 const SUPPORTED_EVENTS = [
 	'generate_token', 
-	'get_identity_claims', 
 	'get_end_user', 
 	'get_fip_user', 
+	'get_identity_claims', 
 	'get_service_account',
-	'get_token_claims'
+	'get_token_claims',
+	'get_token_expiry'
 ]
 
 class Strategy {
