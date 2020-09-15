@@ -25,7 +25,8 @@ class CustomStrategy extends Strategy {
 		this.get_fip_user = (root, { strategy, user }) => { /* Implement your logic here */ }
 		this.get_identity_claims = (root, { user_id, scopes }) => { /* Implement your logic here */ }
 		this.get_service_account = (root, { client_id, client_secret }) => { /* Implement your logic here */ }
-		this.get_token_claims = async (root, { type, token }) => { /* Implement your logic here */ }
+		this.get_token_claims = (root, { type, token }) => { /* Implement your logic here */ }
+		this.get_token_expiry = (root) => { /* Implement your logic here */ }
 
 	}
 }
