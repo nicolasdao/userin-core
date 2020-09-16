@@ -6,7 +6,7 @@ const SUPPORTED_EVENTS = [
 	'get_identity_claims', 
 	'get_service_account',
 	'get_token_claims',
-	'get_token_expiry'
+	'get_config'
 ]
 
 class Strategy {
