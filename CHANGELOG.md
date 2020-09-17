@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/nicolasdao/userin-core/compare/v1.2.3...v1.3.0) (2020-09-17)
+
+
+### Features
+
+* Add a required configuration object to the Strategy constructor ([fc201a5](https://github.com/nicolasdao/userin-core/commit/fc201a5cdcf9ca8f6a85a93054878f1f81e5da27))
+
 ### [1.2.3](https://github.com/nicolasdao/userin-core/compare/v1.2.2...v1.2.3) (2020-09-17)
 
 
