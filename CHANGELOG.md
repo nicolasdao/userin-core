@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.3](https://github.com/nicolasdao/userin-core/compare/v1.2.2...v1.2.3) (2020-09-17)
+
+
+### Features
+
+* Add APIs to list supported events ([ae2a9ee](https://github.com/nicolasdao/userin-core/commit/ae2a9ee054f7141cf1906b8f59f24b4958d8e7db))
+
 ### [1.2.2](https://github.com/nicolasdao/userin-core/compare/v1.2.1...v1.2.2) (2020-09-17)
 
 
