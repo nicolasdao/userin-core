@@ -5,12 +5,11 @@ const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE]
 
 const OIDC_EVENTS = [
 	'generate_token', 
+	'get_client',
 	'get_end_user', 
 	'get_fip_user', 
 	'get_identity_claims', 
-	'get_client',
-	'get_token_claims',
-	'get_config'
+	'get_token_claims'
 ]
 
 const LOGIN_SIGNUP_EVENTS = [

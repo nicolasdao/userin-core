@@ -21,13 +21,11 @@ class CustomStrategy extends Strategy {
 		super()
 		this.name = 'yourcustomstrategy'
 		this.generate_token = (root, { type, claims }) => { /* Implement your logic here */ }
+		this.get_client = (root, { client_id, client_secret }) => { /* Implement your logic here */ }
 		this.get_end_user = (root, { user }) => { /* Implement your logic here */ }
 		this.get_fip_user = (root, { strategy, user }) => { /* Implement your logic here */ }
 		this.get_identity_claims = (root, { user_id, scopes }) => { /* Implement your logic here */ }
-		this.get_service_account = (root, { client_id, client_secret }) => { /* Implement your logic here */ }
 		this.get_token_claims = (root, { type, token }) => { /* Implement your logic here */ }
-		this.get_token_expiry = (root) => { /* Implement your logic here */ }
-
 	}
 }
 ```
