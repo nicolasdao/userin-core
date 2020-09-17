@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.2](https://github.com/nicolasdao/userin-core/compare/v1.3.1...v1.3.2) (2020-09-17)
+
+
+### Features
+
+* Add new Error type NotFoundError ([f731319](https://github.com/nicolasdao/userin-core/commit/f731319eb3df595f44f5ec9da66f9e7afbd74f1c))
+
 ### [1.3.1](https://github.com/nicolasdao/userin-core/compare/v1.3.0...v1.3.1) (2020-09-17)
 
 
