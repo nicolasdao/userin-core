@@ -33,8 +33,74 @@ const isLoginSignupModeOn = (modes=[]) => modes.some(m => m == LOGIN_SIGNUP_MODE
 const isOpenIdModeOn = (modes=[]) => modes.some(m => m == OPENID_MODE)
 
 class Strategy {
-	constructor() {
+	/**
+	 * Creates a new UserIn Strategy instance.
+	 * 
+	 * @param  {[String]}	config.modes							Valid values: 'openid', 'loginsignup' (default).
+	 * @param  {String}		config.tokenExpiry.access_token			[Required] access_token expiry time in seconds.
+	 * @param  {String}		config.tokenExpiry.refresh_token		refresh_token expiry time in seconds. Default null, which means this token never expires.
+	 * @param  {Object}		config.openid							OIDC config. Only required when 'mode' contains 'openid'.
+	 * @param  {String}		config.openid.iss						[Required] OIDC issuer.
+	 * @param  {String}		config.openid.tokenExpiry.id_token		[Required] OIDC id_token expiry time in seconds.
+	 * @param  {String}		config.openid.tokenExpiry.code			[Required] OIDC code expiry time in seconds.
+	 * 
+	 * @return {Strategy} 	userInStrategy
+	 */
+	constructor(config) {
+		// 1. Validates the required configs
+		if (!config) 
+			throw new Error('The UserIn strategy \'config\' object is required')
+		if (typeof(config) != 'object') 
+			throw new Error(`The UserIn strategy 'config' is expected to be an object, found ${typeof(config)} instead`)
+		if (!config.tokenExpiry) 
+			throw new Error('The UserIn strategy \'config.tokenExpiry\' object is required')
+		if (!config.tokenExpiry.access_token) 
+			throw new Error('The UserIn strategy \'config.tokenExpiry.access_token\' number is required')
+		if (isNaN(config.tokenExpiry.access_token*1)) 
+			throw new Error(`The UserIn strategy 'config.tokenExpiry.access_token' must be a number in seconds. Found ${typeof(config.tokenExpiry.access_token)} instead.`)
+		if (config.tokenExpiry.refresh_token && isNaN(config.tokenExpiry.refresh_token*1)) 
+			throw new Error(`The UserIn strategy 'config.tokenExpiry.refresh_token' must be a number in seconds. Found ${typeof(config.tokenExpiry.refresh_token)} instead.`)
 
+		config.tokenExpiry.access_token = config.tokenExpiry.access_token*1
+		if (config.tokenExpiry.refresh_token)
+			config.tokenExpiry.refresh_token = config.tokenExpiry.refresh_token*1
+
+		this.config = {
+			tokenExpiry: {
+				access_token: config.tokenExpiry.access_token,
+				refresh_token: config.tokenExpiry.refresh_token || null
+			}
+		}
+
+		// 2. Determines the modes
+		const modes = getSupportedModes(config.modes)
+		this.modes = modes
+
+		// 3. Validates the OIDC configs
+		if (isOpenIdModeOn(modes)) {
+			// 5.A. Validates the config
+			if (!config.openid) 
+				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid\' object is required')
+			if (!config.openid.iss) 
+				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid.iss\' string is required')
+			if (!config.openid.tokenExpiry) 
+				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid.tokenExpiry\' object is required')
+			if (!config.openid.tokenExpiry.id_token) 
+				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid.tokenExpiry.id_token\' number is required')
+			if (!config.openid.tokenExpiry.code) 
+				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid.tokenExpiry.code\' number is required')
+			if (isNaN(config.openid.tokenExpiry.id_token*1)) 
+				throw new Error(`The UserIn strategy 'config.openid.tokenExpiry.id_token' must be a number in seconds. Found ${typeof(config.openid.tokenExpiry.id_token)} instead.`)
+			if (isNaN(config.openid.tokenExpiry.code*1)) 
+				throw new Error(`The UserIn strategy 'config.openid.tokenExpiry.code' must be a number in seconds. Found ${typeof(config.openid.tokenExpiry.code)} instead.`)
+
+			config.openid.tokenExpiry.id_token = config.openid.tokenExpiry.id_token*1
+			config.openid.tokenExpiry.code = config.openid.tokenExpiry.code*1
+
+			this.config.iss = config.openid.iss
+			this.config.tokenExpiry.id_token = config.openid.tokenExpiry.id_token
+			this.config.tokenExpiry.code = config.openid.tokenExpiry.code
+		}
 	}
 }
 
