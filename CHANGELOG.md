@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.1](https://github.com/nicolasdao/userin-core/compare/v1.3.0...v1.3.1) (2020-09-17)
+
+
+### Features
+
+* Add support for grouping all the token expiry time under a single property ([472c650](https://github.com/nicolasdao/userin-core/commit/472c6503740865db1284f26996c81458d8368914))
+
 ## [1.3.0](https://github.com/nicolasdao/userin-core/compare/v1.2.3...v1.3.0) (2020-09-17)
 
 
