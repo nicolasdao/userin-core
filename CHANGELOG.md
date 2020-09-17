@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/nicolasdao/userin-core/compare/v1.2.1...v1.2.2) (2020-09-17)
+
+
+### Features
+
+* Remove non required OIDC event 'get_config' ([be570f9](https://github.com/nicolasdao/userin-core/commit/be570f963238bae864557f41ab5ad65670659248))
+
 ### [1.2.1](https://github.com/nicolasdao/userin-core/compare/v1.2.0...v1.2.1) (2020-09-17)
 
 
