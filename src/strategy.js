@@ -3,7 +3,7 @@ const OPENID_MODE = 'openid'
 const LOGIN_SIGNUP_MODE = 'loginsignup'
 const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE]
 
-const OIDC_EVENTS = [
+const OPENID_EVENTS = [
 	'generate_token', 
 	'get_client',
 	'get_end_user', 
@@ -18,7 +18,7 @@ const LOGIN_SIGNUP_EVENTS = [
 	'get_end_user'
 ]
 
-const SUPPORTED_EVENTS = Array.from(new Set([...OIDC_EVENTS, ...LOGIN_SIGNUP_EVENTS]))
+const SUPPORTED_EVENTS = Array.from(new Set([...OPENID_EVENTS, ...LOGIN_SIGNUP_EVENTS]))
 
 const getSupportedModes = modes => {
 	const defaultModes = ['loginsignup']
@@ -52,7 +52,7 @@ const verifyStrategy = strategy => {
 	const modes = getSupportedModes(strategy.modes)
 	const requiredEvents = 
 		isLoginSignupModeOn(modes) && isOpenIdModeOn(modes) ? SUPPORTED_EVENTS :
-			isLoginSignupModeOn(modes) ? LOGIN_SIGNUP_EVENTS : OIDC_EVENTS
+			isLoginSignupModeOn(modes) ? LOGIN_SIGNUP_EVENTS : OPENID_EVENTS
 
 	requiredEvents.forEach(eventName => {
 		if (!strategy[eventName])
@@ -66,10 +66,12 @@ const verifyStrategy = strategy => {
 module.exports = {
 	Strategy, 
 	verifyStrategy,
-	OIDC_EVENTS,
 	getSupportedModes,
 	isLoginSignupModeOn,
-	isOpenIdModeOn
+	isOpenIdModeOn,
+	getEvents: () => SUPPORTED_EVENTS,
+	getOpenIdEvents: () => OPENID_EVENTS,
+	getLoginSignupEvents: () => LOGIN_SIGNUP_EVENTS
 }
 
 
