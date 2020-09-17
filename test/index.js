@@ -35,7 +35,7 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'The UserIn strategy \'config.tokenExpiry\' object is required', '02')
+				assert.equal(err.message, 'The UserIn strategy \'tokenExpiry.access_token\' number is required', '02')
 			}
 		})
 		it('04 - Should fail if the config is missing the \'tokenExpiry.access_token\' property.', () => {
@@ -46,10 +46,10 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'The UserIn strategy \'config.tokenExpiry.access_token\' number is required', '02')
+				assert.equal(err.message, 'The UserIn strategy \'tokenExpiry.access_token\' number is required', '02')
 			}
 		})
-		it('05 - Should fail if the \'config.tokenExpiry.access_token\' is not a number.', () => {
+		it('05 - Should fail if the \'tokenExpiry.access_token\' is not a number.', () => {
 			try {
 				const config = {
 					tokenExpiry:{
@@ -59,7 +59,7 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'The UserIn strategy \'config.tokenExpiry.access_token\' must be a number in seconds. Found string instead.', '02')
+				assert.equal(err.message, 'The UserIn strategy \'tokenExpiry.access_token\' must be a number in seconds. Found string instead.', '02')
 			}
 		})
 		it('06 - Should fail if the mode contains \'openid\' and the config is missing the \'openid\' object.', () => {
@@ -105,7 +105,7 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'config.openid.tokenExpiry\' object is required', '02')
+				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required', '02')
 			}
 		})
 		it('09 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.id_token\' string.', () => {
@@ -123,7 +123,7 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'config.openid.tokenExpiry.id_token\' number is required', '02')
+				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required', '02')
 			}
 		})
 		it('10 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.code\' string.', () => {
@@ -143,10 +143,10 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'config.openid.tokenExpiry.code\' number is required', '02')
+				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
 			}
 		})
-		it('11 - Should fail if the \'config.tokenExpiry.refresh_token\' is not a number.', () => {
+		it('11 - Should fail if the \'tokenExpiry.refresh_token\' is not a number.', () => {
 			try {
 				const config = {
 					tokenExpiry:{
@@ -157,7 +157,7 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'The UserIn strategy \'config.tokenExpiry.refresh_token\' must be a number in seconds. Found string instead.', '02')
+				assert.equal(err.message, 'The UserIn strategy \'tokenExpiry.refresh_token\' must be a number in seconds. Found string instead.', '02')
 			}
 		})
 		it('12 - Should create a new UserIn strategy when the tokenExpiry object is valid and no mode is defined.', () => {
@@ -224,6 +224,54 @@ describe('Strategy', () => {
 				openid: {
 					iss:'https://userin.com',
 					tokenExpiry: {
+						id_token:1200,
+						code:30
+					}
+				}
+			}
+			const strategy = new Strategy(config)
+			assert.isOk(strategy, '01')
+			assert.isOk(strategy.modes, '02')
+			assert.isOk(strategy.config, '03')
+			assert.equal(strategy.modes.join(''), 'loginsignupopenid','04')
+			assert.equal(strategy.config.tokenExpiry.access_token, 3600,'05')
+			assert.equal(strategy.config.tokenExpiry.refresh_token, 1000000,'06')
+			assert.equal(strategy.config.tokenExpiry.id_token, 1200,'07')
+			assert.equal(strategy.config.tokenExpiry.code, 30,'08')
+			assert.equal(strategy.config.iss, 'https://userin.com','09')
+		})
+		it('16 - Should support setting all the tokenExpiry in \'config.tokenExpiry\'.', () => {
+			const config = {
+				modes:['loginsignup', 'openid'],
+				tokenExpiry:{
+					access_token: 3600,
+					refresh_token: 1000000,
+					id_token:1200,
+					code:30
+				},
+				openid: {
+					iss:'https://userin.com'
+				}
+			}
+			const strategy = new Strategy(config)
+			assert.isOk(strategy, '01')
+			assert.isOk(strategy.modes, '02')
+			assert.isOk(strategy.config, '03')
+			assert.equal(strategy.modes.join(''), 'loginsignupopenid','04')
+			assert.equal(strategy.config.tokenExpiry.access_token, 3600,'05')
+			assert.equal(strategy.config.tokenExpiry.refresh_token, 1000000,'06')
+			assert.equal(strategy.config.tokenExpiry.id_token, 1200,'07')
+			assert.equal(strategy.config.tokenExpiry.code, 30,'08')
+			assert.equal(strategy.config.iss, 'https://userin.com','09')
+		})
+		it('17 - Should support setting all the tokenExpiry in \'config.openid.tokenExpiry\'.', () => {
+			const config = {
+				modes:['loginsignup', 'openid'],
+				openid: {
+					iss:'https://userin.com',
+					tokenExpiry:{
+						access_token: 3600,
+						refresh_token: 1000000,
 						id_token:1200,
 						code:30
 					}
