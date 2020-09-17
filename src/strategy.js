@@ -4,7 +4,7 @@ const SUPPORTED_EVENTS = [
 	'get_end_user', 
 	'get_fip_user', 
 	'get_identity_claims', 
-	'get_service_account',
+	'get_client',
 	'get_token_claims',
 	'get_config'
 ]
