@@ -71,6 +71,15 @@ class InvalidTokenError extends Error {
 	}
 }
 
+// Non standard OIDC errors
+class InvalidUserError extends Error {
+	constructor(message) {
+		super(message)
+		this.code = 401
+		this.category = 'invalid_user'
+	}
+}
+
 module.exports = {
 	InvalidRequestError,
 	UnsupportedGrantTypeError,
@@ -80,5 +89,6 @@ module.exports = {
 	UnauthorizedClientError,
 	InvalidClientError,
 	InternalServerError,
-	InvalidTokenError
+	InvalidTokenError,
+	InvalidUserError
 }

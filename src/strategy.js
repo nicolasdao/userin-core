@@ -1,5 +1,9 @@
 
-const SUPPORTED_EVENTS = [
+const OPENID_MODE = 'openid'
+const LOGIN_SIGNUP_MODE = 'loginsignup'
+const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE]
+
+const OIDC_EVENTS = [
 	'generate_token', 
 	'get_end_user', 
 	'get_fip_user', 
@@ -8,6 +12,26 @@ const SUPPORTED_EVENTS = [
 	'get_token_claims',
 	'get_config'
 ]
+
+const LOGIN_SIGNUP_EVENTS = [
+	'create_end_user',
+	'generate_token',
+	'get_end_user'
+]
+
+const SUPPORTED_EVENTS = Array.from(new Set([...OIDC_EVENTS, ...LOGIN_SIGNUP_EVENTS]))
+
+const getSupportedModes = modes => {
+	const defaultModes = ['loginsignup']
+	if (!modes || !Array.isArray(modes) || !modes.length)
+		return defaultModes
+
+	const supportedModes = modes.map(m => m.toLowerCase().trim()).filter(m => SUPPORTED_MODES.indexOf(m) >= 0)
+	return supportedModes.length ? supportedModes : defaultModes
+}
+
+const isLoginSignupModeOn = (modes=[]) => modes.some(m => m == LOGIN_SIGNUP_MODE)
+const isOpenIdModeOn = (modes=[]) => modes.some(m => m == OPENID_MODE)
 
 class Strategy {
 	constructor() {
@@ -25,8 +49,13 @@ const verifyStrategy = strategy => {
 		throw new Error('strategy is not an instance of Strategy. strategy must inherit from a Strategy created from rhe userin-core package.')
 	if (!strategy.name)
 		throw new Error('strategy is missing its required \'name\' property')
+	
+	const modes = getSupportedModes(strategy.modes)
+	const requiredEvents = 
+		isLoginSignupModeOn(modes) && isOpenIdModeOn(modes) ? SUPPORTED_EVENTS :
+			isLoginSignupModeOn(modes) ? LOGIN_SIGNUP_EVENTS : OIDC_EVENTS
 
-	SUPPORTED_EVENTS.forEach(eventName => {
+	requiredEvents.forEach(eventName => {
 		if (!strategy[eventName])
 			throw new Error(`strategy is missing its '${eventName}' event handler implementation`)
 		const tf = typeof(strategy[eventName])
@@ -38,7 +67,10 @@ const verifyStrategy = strategy => {
 module.exports = {
 	Strategy, 
 	verifyStrategy,
-	SUPPORTED_EVENTS
+	OIDC_EVENTS,
+	getSupportedModes,
+	isLoginSignupModeOn,
+	isOpenIdModeOn
 }
 
 
