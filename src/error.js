@@ -80,6 +80,15 @@ class InvalidUserError extends Error {
 	}
 }
 
+// Non standard OIDC errors
+class NotFoundError extends Error {
+	constructor(message) {
+		super(message)
+		this.code = 404
+		this.category = 'resource_not_found'
+	}
+}
+
 module.exports = {
 	InvalidRequestError,
 	UnsupportedGrantTypeError,
@@ -90,5 +99,6 @@ module.exports = {
 	InvalidClientError,
 	InternalServerError,
 	InvalidTokenError,
-	InvalidUserError
+	InvalidUserError,
+	NotFoundError
 }
