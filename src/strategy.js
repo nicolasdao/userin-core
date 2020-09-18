@@ -1,7 +1,8 @@
 
 const OPENID_MODE = 'openid'
 const LOGIN_SIGNUP_MODE = 'loginsignup'
-const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE]
+const LOGIN_SIGNUP_FIP_MODE = 'loginsignupfip'
+const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE, LOGIN_SIGNUP_FIP_MODE]
 
 const OPENID_EVENTS = [
 	'generate_token', 
@@ -18,7 +19,12 @@ const LOGIN_SIGNUP_EVENTS = [
 	'get_end_user'
 ]
 
-const SUPPORTED_EVENTS = Array.from(new Set([...OPENID_EVENTS, ...LOGIN_SIGNUP_EVENTS]))
+const LOGIN_SIGNUP_FIP_EVENTS = [
+	...LOGIN_SIGNUP_EVENTS,
+	'get_fip_user'
+]
+
+const SUPPORTED_EVENTS = Array.from(new Set([...OPENID_EVENTS, ...LOGIN_SIGNUP_EVENTS, ...LOGIN_SIGNUP_FIP_EVENTS]))
 
 const getSupportedModes = modes => {
 	const defaultModes = ['loginsignup']
@@ -30,6 +36,7 @@ const getSupportedModes = modes => {
 }
 
 const isLoginSignupModeOn = (modes=[]) => modes.some(m => m == LOGIN_SIGNUP_MODE)
+const isLoginSignupFipModeOn = (modes=[]) => modes.some(m => m == LOGIN_SIGNUP_FIP_MODE)
 const isOpenIdModeOn = (modes=[]) => modes.some(m => m == OPENID_MODE)
 
 class Strategy {
@@ -82,19 +89,29 @@ class Strategy {
 		const modes = getSupportedModes(config.modes)
 		this.modes = modes
 
-		// 3. Validates the OIDC configs
-		if (isOpenIdModeOn(modes)) {
-			// 5.A. Validates the config
-			if (!config.openid) 
-				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid\' object is required')
-			if (!config.openid.iss) 
-				throw new Error('When modes contains \'openid\', the UserIn strategy \'config.openid.iss\' string is required')
-			if (!tokenExpiry) 
-				throw new Error('When modes contains \'openid\', the UserIn strategy \'tokenExpiry\' object is required')
-			if (!tokenExpiry.id_token) 
-				throw new Error('When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required')
+		// 3. Validates the loginsignupfip mode 
+		if (isLoginSignupFipModeOn(modes)) {
 			if (!tokenExpiry.code) 
-				throw new Error('When modes contains \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required')
+				throw new Error(`When modes contains '${LOGIN_SIGNUP_FIP_MODE}', the UserIn strategy 'tokenExpiry.code' number is required`)
+			if (isNaN(tokenExpiry.code*1)) 
+				throw new Error(`When modes contains '${LOGIN_SIGNUP_FIP_MODE}', the UserIn strategy 'tokenExpiry.code' must be a number in seconds. Found ${typeof(tokenExpiry.code)} instead.`)
+
+			this.config.tokenExpiry.code = tokenExpiry.code*1
+		}
+
+		// 4. Validates the OIDC configs
+		if (isOpenIdModeOn(modes)) {
+			// 4.A. Validates the config
+			if (!config.openid) 
+				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'config.openid' object is required`)
+			if (!config.openid.iss) 
+				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'config.openid.iss' string is required`)
+			if (!tokenExpiry) 
+				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry' object is required`)
+			if (!tokenExpiry.id_token) 
+				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry.id_token' number is required`)
+			if (!tokenExpiry.code) 
+				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry.code' number is required`)
 			if (isNaN(tokenExpiry.id_token*1)) 
 				throw new Error(`The UserIn strategy 'tokenExpiry.id_token' must be a number in seconds. Found ${typeof(tokenExpiry.id_token)} instead.`)
 			if (isNaN(tokenExpiry.code*1)) 
@@ -107,6 +124,8 @@ class Strategy {
 			this.config.tokenExpiry.id_token = tokenExpiry.id_token
 			this.config.tokenExpiry.code = tokenExpiry.code
 		}
+
+
 	}
 }
 
@@ -122,9 +141,15 @@ const verifyStrategy = strategy => {
 		throw new Error('strategy is missing its required \'name\' property')
 	
 	const modes = getSupportedModes(strategy.modes)
-	const requiredEvents = 
-		isLoginSignupModeOn(modes) && isOpenIdModeOn(modes) ? SUPPORTED_EVENTS :
-			isLoginSignupModeOn(modes) ? LOGIN_SIGNUP_EVENTS : OPENID_EVENTS
+	const events = []
+	if (isLoginSignupModeOn(modes))
+		events.push(...LOGIN_SIGNUP_EVENTS)
+	if (isLoginSignupFipModeOn(modes))
+		events.push(...LOGIN_SIGNUP_FIP_EVENTS)
+	if (isOpenIdModeOn(modes))
+		events.push(...OPENID_EVENTS)
+
+	const requiredEvents = Array.from(new Set(events))
 
 	requiredEvents.forEach(eventName => {
 		if (!strategy[eventName])

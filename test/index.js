@@ -108,7 +108,7 @@ describe('Strategy', () => {
 				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required', '02')
 			}
 		})
-		it('09 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.id_token\' string.', () => {
+		it('09 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.id_token\' number.', () => {
 			try {
 				const config = {
 					modes: ['openid'],
@@ -126,7 +126,7 @@ describe('Strategy', () => {
 				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required', '02')
 			}
 		})
-		it('10 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.code\' string.', () => {
+		it('10 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.code\' number.', () => {
 			try {
 				const config = {
 					modes: ['openid'],
@@ -287,6 +287,38 @@ describe('Strategy', () => {
 			assert.equal(strategy.config.tokenExpiry.id_token, 1200,'07')
 			assert.equal(strategy.config.tokenExpiry.code, 30,'08')
 			assert.equal(strategy.config.iss, 'https://userin.com','09')
+		})
+		it('18 - Should fail if the mode contains \'loginsignupfip\' and the config is missing the \'tokenExpiry.code\' number.', () => {
+			try {
+				const config = {
+					modes: ['loginsignupfip'],
+					tokenExpiry:{
+						access_token: 3600
+					}
+				}
+				const strategy = new Strategy(config) || 1
+				assert.isNotOk(strategy, '01')
+			} catch(err) {
+				assert.equal(err.message, 'When modes contains \'loginsignupfip\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
+			}
+		})
+		it('19 - Should succeed if the mode contains \'loginsignupfip\' and both the \'tokenExpiry.code\' and the \'tokenExpiry.access_token\' number.', () => {
+			const config = {
+				modes: ['loginsignupfip'],
+				tokenExpiry:{
+					access_token: 3600,
+					code:30
+				}
+			}
+			const strategy = new Strategy(config)
+
+			assert.isOk(strategy, '01')
+			assert.isOk(strategy.modes, '02')
+			assert.isOk(strategy.config, '03')
+			assert.equal(strategy.modes.join(''), 'loginsignupfip','04')
+			assert.equal(strategy.config.tokenExpiry.access_token, 3600,'05')
+			assert.equal(strategy.config.tokenExpiry.refresh_token, null,'06')
+			assert.equal(strategy.config.tokenExpiry.code, 30,'07')
 		})
 	})
 })
