@@ -1,6 +1,6 @@
 {
   "name": "userin-core",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "UserIn core component used to build UserIn plugins",
   "main": "src/index.js",
   "repository": {
