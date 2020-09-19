@@ -5,7 +5,10 @@ const LOGIN_SIGNUP_FIP_MODE = 'loginsignupfip'
 const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE, LOGIN_SIGNUP_FIP_MODE]
 
 const OPENID_EVENTS = [
-	'generate_token', 
+	'generate_access_token',
+	'generate_authorization_code',
+	'generate_id_token', 
+	'generate_refresh_token',
 	'get_client',
 	'get_end_user', 
 	'get_fip_user', 
@@ -15,12 +18,14 @@ const OPENID_EVENTS = [
 
 const LOGIN_SIGNUP_EVENTS = [
 	'create_end_user',
-	'generate_token',
+	'generate_access_token',
+	'generate_refresh_token',
 	'get_end_user'
 ]
 
 const LOGIN_SIGNUP_FIP_EVENTS = [
 	...LOGIN_SIGNUP_EVENTS,
+	'generate_authorization_code',
 	'get_fip_user'
 ]
 
