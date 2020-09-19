@@ -5,27 +5,42 @@ const LOGIN_SIGNUP_FIP_MODE = 'loginsignupfip'
 const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE, LOGIN_SIGNUP_FIP_MODE]
 
 const OPENID_EVENTS = [
+	// Generates tokens
 	'generate_access_token',
 	'generate_authorization_code',
 	'generate_id_token', 
 	'generate_refresh_token',
+	// Gets a client's details
 	'get_client',
+	// Gets a user's details
 	'get_end_user', 
-	'get_fip_user', 
 	'get_identity_claims', 
-	'get_token_claims'
+	// Gets tokens' details
+	'get_access_token_claims', 
+	'get_authorization_code_claims',
+	'get_id_token_claims', 
+	'get_refresh_token_claims'
 ]
 
 const LOGIN_SIGNUP_EVENTS = [
+	// Creates a new user
 	'create_end_user',
+	// Gets a user's details
+	'get_end_user',
+	// Generates tokens
 	'generate_access_token',
 	'generate_refresh_token',
-	'get_end_user'
+	// Gets tokens' details
+	'get_refresh_token_claims',
 ]
 
 const LOGIN_SIGNUP_FIP_EVENTS = [
 	...LOGIN_SIGNUP_EVENTS,
+	// Generates tokens
 	'generate_authorization_code',
+	// Gets tokens' details
+	'get_authorization_code_claims',
+	// Gets a FIP user's details
 	'get_fip_user'
 ]
 
@@ -157,8 +172,16 @@ const verifyStrategy = strategy => {
 	const requiredEvents = Array.from(new Set(events))
 
 	requiredEvents.forEach(eventName => {
+		const associatedModes = []
+		if (LOGIN_SIGNUP_EVENTS.some(e => e == eventName))
+			associatedModes.push(LOGIN_SIGNUP_MODE)
+		if (LOGIN_SIGNUP_FIP_EVENTS.some(e => e == eventName))
+			associatedModes.push(LOGIN_SIGNUP_FIP_MODE)
+		if (OPENID_EVENTS.some(e => e == eventName))
+			associatedModes.push(OPENID_MODE)
+
 		if (!strategy[eventName])
-			throw new Error(`strategy is missing its '${eventName}' event handler implementation`)
+			throw new Error(`When 'modes' contains ${associatedModes.join(', ')} the strategy must implement the '${eventName}' event handler. This event handler is currently not implemented.`)
 		const tf = typeof(strategy[eventName])
 		if (tf != 'function')
 			throw new Error(`strategy's '${eventName}' event handler is not a function. Found ${tf} instead.`)
