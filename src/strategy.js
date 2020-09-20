@@ -36,12 +36,14 @@ const LOGIN_SIGNUP_EVENTS = [
 
 const LOGIN_SIGNUP_FIP_EVENTS = [
 	...LOGIN_SIGNUP_EVENTS,
+	// Creates a new user
+	'create_fip_user',
+	// Gets a FIP user's details
+	'get_fip_user',
 	// Generates tokens
 	'generate_authorization_code',
 	// Gets tokens' details
-	'get_authorization_code_claims',
-	// Gets a FIP user's details
-	'get_fip_user'
+	'get_authorization_code_claims'
 ]
 
 const SUPPORTED_EVENTS = Array.from(new Set([...OPENID_EVENTS, ...LOGIN_SIGNUP_EVENTS, ...LOGIN_SIGNUP_FIP_EVENTS]))
@@ -196,7 +198,8 @@ module.exports = {
 	isOpenIdModeOn,
 	getEvents: () => SUPPORTED_EVENTS,
 	getOpenIdEvents: () => OPENID_EVENTS,
-	getLoginSignupEvents: () => LOGIN_SIGNUP_EVENTS
+	getLoginSignupEvents: () => LOGIN_SIGNUP_EVENTS,
+	getLoginSignupFIPEvents: () => LOGIN_SIGNUP_FIP_EVENTS
 }
 
 

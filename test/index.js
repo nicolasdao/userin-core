@@ -9,7 +9,7 @@
 // To skip a test, either use 'xit' instead of 'it', or 'describe.skip' instead of 'describe'
 
 const { assert } = require('chai')
-const { Strategy, verifyStrategy } = require('../src')
+const { Strategy, verifyStrategy, getLoginSignupFIPEvents, getOpenIdEvents, getLoginSignupEvents } = require('../src')
 
 describe('Strategy', () => {
 	describe('#constructor', () => {
@@ -323,6 +323,10 @@ describe('Strategy', () => {
 	})
 })
 
+const OPENID_HANDLERS = getOpenIdEvents()
+const LOGIN_SIGNUP_HANDLERS = getLoginSignupEvents()
+const LOGIN_SIGNUP_FIP_HANDLERS = getLoginSignupFIPEvents()
+
 describe('verifyStrategy', () => {
 	describe('Strategy - loginsignup mode', () => {
 		const config = {
@@ -351,30 +355,35 @@ describe('verifyStrategy', () => {
 				}
 			}
 		})
-		it('02 - Should fail in loginsignup mode when all handlers are defined except \'create_end_user\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
+
+		let i = 2
+		for(let eventHandler of LOGIN_SIGNUP_HANDLERS) 
+			it(`${i++} - Should fail in loginsignup mode when all handlers are defined except '${eventHandler}'`, done => {
+				class DummyStrategy extends Strategy {
+					constructor(config) {
+						super(config)
+						this.name = 'dummy'
+					}
 				}
-			}
-			const strategy = new DummyStrategy(config)
-			// strategy.create_end_user = () => null
-			strategy.generate_token = () => null
-			strategy.get_end_user = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
+				const strategy = new DummyStrategy(config)
+				LOGIN_SIGNUP_HANDLERS.forEach(h => {
+					if (h != eventHandler)
+						strategy[h] = () => null
+				})
 				try {
-					assert.isOk(err.message.indexOf('must implement the \'create_end_user\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
+					verifyStrategy(strategy)
+					done(new Error('Should have failed'))
+				} catch (err) {
+					try {
+						assert.isOk(err.message.indexOf(`must implement the '${eventHandler}' event handler`) >= 0, '01')
+						done()
+					} catch(e){
+						done(e)
+					}
 				}
-			}
-		})
-		it('03 - Should fail in loginsignup mode when all handlers are defined except \'generate_access_token\'', done => {
+			})
+		
+		it(`${i} - Should succeed in loginsignup mode when all handlers are defined`, done => {
 			class DummyStrategy extends Strategy {
 				constructor(config) {
 					super(config)
@@ -382,111 +391,9 @@ describe('verifyStrategy', () => {
 				}
 			}
 			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			// strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_access_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('04 - Should fail in loginsignup mode when all handlers are defined except \'get_end_user\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			// strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_end_user\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('05 - Should fail in loginsignup mode when all handlers are defined except \'generate_refresh_token\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			// strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_refresh_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('06 - Should fail in loginsignup mode when all handlers are defined except \'get_refresh_token_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			// strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_refresh_token_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('07 - Should succeed in loginsignup mode when all handlers are defined', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
+			LOGIN_SIGNUP_FIP_HANDLERS.forEach(h => {
+				strategy[h] = () => null
+			})
 			try {
 				verifyStrategy(strategy)
 				done()
@@ -524,35 +431,36 @@ describe('verifyStrategy', () => {
 				}
 			}
 		})
-		it('02 - Should fail in loginsignupfip mode when all handlers are defined except \'create_end_user\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
+
+		let i = 2
+		for(let eventHandler of LOGIN_SIGNUP_FIP_HANDLERS)
+			it(`${i++} - Should fail in loginsignupfip mode when all handlers are defined except '${eventHandler}'`, done => {
+				class DummyStrategy extends Strategy {
+					constructor(config) {
+						super(config)
+						this.name = 'dummy'
+					}
 				}
-			}
-			const strategy = new DummyStrategy(config)
-			// strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			strategy.get_fip_user = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
+				const strategy = new DummyStrategy(config)
+				LOGIN_SIGNUP_FIP_HANDLERS.forEach(h => {
+					if (h != eventHandler)
+						strategy[h] = () => null
+				})
+
 				try {
-					assert.isOk(err.message.indexOf('must implement the \'create_end_user\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
+					verifyStrategy(strategy)
+					done(new Error('Should have failed'))
+				} catch (err) {
+					try {
+						assert.isOk(err.message.indexOf(`must implement the '${eventHandler}' event handler`) >= 0, '01')
+						done()
+					} catch(e){
+						done(e)
+					}
 				}
-			}
-		})
-		it('03 - Should fail in loginsignupfip mode when all handlers are defined except \'generate_access_token\'', done => {
+			})
+
+		it(`${i} - Should succeed in loginsignupfip mode when all handlers are defined`, done => {
 			class DummyStrategy extends Strategy {
 				constructor(config) {
 					super(config)
@@ -560,210 +468,9 @@ describe('verifyStrategy', () => {
 				}
 			}
 			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			// strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			strategy.get_fip_user = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_access_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('04 - Should fail in loginsignupfip mode when all handlers are defined except \'get_end_user\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			// strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			strategy.get_fip_user = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_end_user\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('05 - Should fail in loginsignupfip mode when all handlers are defined except \'get_fip_user\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			// strategy.get_fip_user = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_fip_user\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('06 - Should fail in loginsignupfip mode when all handlers are defined except \'generate_refresh_token\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_fip_user = () => null
-			strategy.get_end_user = () => null
-			// strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_refresh_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('07 - Should fail in loginsignupfip mode when all handlers are defined except \'get_refresh_token_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_fip_user = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			// strategy.get_refresh_token_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_refresh_token_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('08 - Should fail in loginsignupfip mode when all handlers are defined except \'generate_authorization_code\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_fip_user = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			// strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_authorization_code\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('09 - Should fail in loginsignupfip mode when all handlers are defined except \'get_authorization_code_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_fip_user = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			strategy.generate_authorization_code = () => null
-			// strategy.get_authorization_code_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_authorization_code_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('13 - Should succeed in loginsignupfip mode when all handlers are defined', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.create_end_user = () => null
-			strategy.generate_access_token = () => null
-			strategy.get_fip_user = () => null
-			strategy.get_end_user = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_refresh_token_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.get_authorization_code_claims = () => null
+			LOGIN_SIGNUP_FIP_HANDLERS.forEach(h => {
+				strategy[h] = () => null
+			})
 			try {
 				verifyStrategy(strategy)
 				done()
@@ -805,39 +512,36 @@ describe('verifyStrategy', () => {
 				}
 			}
 		})
-		it('02 - Should fail in openid mode when all handlers are defined except \'generate_access_token\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
+
+		let i = 2
+		for(let eventHandler of OPENID_HANDLERS) 
+			it(`${i++} - Should fail in openid mode when all handlers are defined except '${eventHandler}'`, done => {
+				class DummyStrategy extends Strategy {
+					constructor(config) {
+						super(config)
+						this.name = 'dummy'
+					}
 				}
-			}
-				
-			const strategy = new DummyStrategy(config)
-			// strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
+					
+				const strategy = new DummyStrategy(config)
+				OPENID_HANDLERS.forEach(h => {
+					if (h != eventHandler)
+						strategy[h] = () => null
+				})
 				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_access_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
+					verifyStrategy(strategy)
+					done(new Error('Should have failed'))
+				} catch (err) {
+					try {
+						assert.isOk(err.message.indexOf(`must implement the '${eventHandler}' event handler`) >= 0, '01')
+						done()
+					} catch(e){
+						done(e)
+					}
 				}
-			}
-		})
-		it('03 - Should fail in openid mode when all handlers are defined except \'get_client\'', done => {
+			})
+
+		it(`${i} - Should succeed in openid mode when all handlers are defined`, done => {
 			class DummyStrategy extends Strategy {
 				constructor(config) {
 					super(config)
@@ -845,327 +549,9 @@ describe('verifyStrategy', () => {
 				}
 			}
 			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			// strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_client\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('04 - Should fail in openid mode when all handlers are defined except \'get_end_user\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			// strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_end_user\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('05 - Should fail in openid mode when all handlers are defined except \'get_access_token_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			// strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_access_token_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('06 - Should fail in openid mode when all handlers are defined except \'get_identity_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			// strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_identity_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('07 - Should fail in openid mode when all handlers are defined except \'generate_authorization_code\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			// strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_authorization_code\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('08 - Should fail in openid mode when all handlers are defined except \'generate_id_token\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			// strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_id_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('09 - Should fail in openid mode when all handlers are defined except \'generate_refresh_token\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			// strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'generate_refresh_token\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('10 - Should fail in openid mode when all handlers are defined except \'get_authorization_code_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			// strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_authorization_code_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('11 - Should fail in openid mode when all handlers are defined except \'get_id_token_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			// strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_id_token_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('12 - Should fail in openid mode when all handlers are defined except \'get_refresh_token_claims\'', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			// strategy.get_refresh_token_claims = () => null
-			try {
-				verifyStrategy(strategy)
-				done(new Error('Should have failed'))
-			} catch (err) {
-				try {
-					assert.isOk(err.message.indexOf('must implement the \'get_refresh_token_claims\' event handler') >= 0, '01')
-					done()
-				} catch(e){
-					done(e)
-				}
-			}
-		})
-		it('13 - Should succeed in openid mode when all handlers are defined', done => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			strategy.generate_access_token = () => null
-			strategy.get_client = () => null
-			strategy.get_end_user = () => null
-			strategy.get_identity_claims = () => null
-			strategy.generate_authorization_code = () => null
-			strategy.generate_id_token = () => null
-			strategy.generate_refresh_token = () => null
-			strategy.get_access_token_claims = () => null
-			strategy.get_authorization_code_claims = () => null
-			strategy.get_id_token_claims = () => null
-			strategy.get_refresh_token_claims = () => null
+			OPENID_HANDLERS.forEach(h => {
+				strategy[h] = () => null
+			})
 			try {
 				verifyStrategy(strategy)
 				done()
