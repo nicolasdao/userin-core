@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/nicolasdao/userin-core/compare/v1.5.1...v1.6.0) (2020-09-20)
+
+
+### Features
+
+* Add support for a new required 'create_fip_user' event handler ([5292b8b](https://github.com/nicolasdao/userin-core/commit/5292b8ba666f96126fe09420d947530fcc5e6d9c))
+
 ### [1.5.1](https://github.com/nicolasdao/userin-core/compare/v1.5.0...v1.5.1) (2020-09-19)
 
 ## [1.5.0](https://github.com/nicolasdao/userin-core/compare/v1.4.0...v1.5.0) (2020-09-19)
