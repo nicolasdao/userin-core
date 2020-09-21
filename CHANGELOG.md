@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.2](https://github.com/nicolasdao/userin-core/compare/v1.6.1...v1.6.2) (2020-09-21)
+
+
+### Features
+
+* Add support for new custom error InvalidCredentialsError ([7a1a0b6](https://github.com/nicolasdao/userin-core/commit/7a1a0b633c963440b5ecf5047e8281ef1193953a))
+
 ### [1.6.1](https://github.com/nicolasdao/userin-core/compare/v1.6.0...v1.6.1) (2020-09-21)
 
 
