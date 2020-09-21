@@ -3,6 +3,7 @@ const OPENID_MODE = 'openid'
 const LOGIN_SIGNUP_MODE = 'loginsignup'
 const LOGIN_SIGNUP_FIP_MODE = 'loginsignupfip'
 const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE, LOGIN_SIGNUP_FIP_MODE]
+const CONFIG_KEYS = ['modes', 'tokenExpiry', 'openid']
 
 const OPENID_EVENTS = [
 	// Generates tokens
@@ -147,7 +148,11 @@ class Strategy {
 			this.config.tokenExpiry.code = tokenExpiry.code
 		}
 
-
+		// Adds all the non-standard keys back to the config
+		for(let key in config) {
+			if (CONFIG_KEYS.indexOf(key) < 0)
+				this.config[key] = config[key]
+		}
 	}
 }
 
