@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.6.1](https://github.com/nicolasdao/userin-core/compare/v1.6.0...v1.6.1) (2020-09-21)
+
+
+### Bug Fixes
+
+* The strategy config is ignoring non-standard fields ([038f6d9](https://github.com/nicolasdao/userin-core/commit/038f6d9953adfacf773802338feabb10ca40c241))
+
 ## [1.6.0](https://github.com/nicolasdao/userin-core/compare/v1.5.1...v1.6.0) (2020-09-20)
 
 
