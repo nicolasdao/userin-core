@@ -89,6 +89,15 @@ class NotFoundError extends Error {
 	}
 }
 
+// Non standard OIDC errors
+class InvalidCredentialsError extends Error {
+	constructor(message) {
+		super(message)
+		this.code = 401
+		this.category = 'invalid_credentials'
+	}
+}
+
 module.exports = {
 	InvalidRequestError,
 	UnsupportedGrantTypeError,
@@ -100,5 +109,6 @@ module.exports = {
 	InternalServerError,
 	InvalidTokenError,
 	InvalidUserError,
-	NotFoundError
+	NotFoundError,
+	InvalidCredentialsError
 }
