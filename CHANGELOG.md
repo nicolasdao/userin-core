@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/nicolasdao/userin-core/compare/v1.6.2...v1.7.0) (2020-09-29)
+
+
+### Features
+
+* Add new event handlers to support the missing OpenID data needed in the discovery endpoint ([512216f](https://github.com/nicolasdao/userin-core/commit/512216f9c1bbde105d38ba5643303bd0b65bc44e))
+
 ### [1.6.2](https://github.com/nicolasdao/userin-core/compare/v1.6.1...v1.6.2) (2020-09-21)
 
 
