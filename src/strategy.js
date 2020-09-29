@@ -20,7 +20,12 @@ const OPENID_EVENTS = [
 	'get_access_token_claims', 
 	'get_authorization_code_claims',
 	'get_id_token_claims', 
-	'get_refresh_token_claims'
+	'get_refresh_token_claims',
+	'get_jwks',
+	// Gets metadata
+	'get_claims_supported',
+	'get_scopes_supported',
+	'get_id_token_signing_alg_values_supported'
 ]
 
 const LOGIN_SIGNUP_EVENTS = [
