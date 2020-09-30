@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.9.1](https://github.com/nicolasdao/userin-core/compare/v1.9.0...v1.9.1) (2020-09-30)
+
+
+### Bug Fixes
+
+* The 'get_id_token_signing_alg_values_supported' should be optional and only required when the optional 'get_jwks' is defined ([1606d13](https://github.com/nicolasdao/userin-core/commit/1606d131ec1327ffee4488a7cfbaab5480a58042))
+
 ## [1.9.0](https://github.com/nicolasdao/userin-core/compare/v1.8.0...v1.9.0) (2020-09-30)
 
 
