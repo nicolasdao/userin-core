@@ -25,7 +25,8 @@ const OPENID_EVENTS = [
 	// Gets metadata
 	'get_claims_supported',
 	'get_scopes_supported',
-	'get_id_token_signing_alg_values_supported'
+	'get_id_token_signing_alg_values_supported',
+	'get_grant_types_supported'
 ]
 
 const LOGIN_SIGNUP_EVENTS = [
