@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.9.0](https://github.com/nicolasdao/userin-core/compare/v1.8.0...v1.9.0) (2020-09-30)
+
+
+### Features
+
+* Add support for distinguishing between required OpenID event handlers and non-required ([1144353](https://github.com/nicolasdao/userin-core/commit/1144353b558dfbdca41e3a57a3cb82c3c0bf932c))
+
 ## [1.8.0](https://github.com/nicolasdao/userin-core/compare/v1.7.0...v1.8.0) (2020-09-30)
 
 
