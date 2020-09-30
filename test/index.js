@@ -559,30 +559,6 @@ describe('verifyStrategy', () => {
 				done(err)
 			}
 		})
-
-		it(`${i++} - Should fail in openid mode when the optional 'get_jwks' event handler is defined but the 'get_id_token_signing_alg_values_supported' is not.`, () => {
-			class DummyStrategy extends Strategy {
-				constructor(config) {
-					super(config)
-					this.name = 'dummy'
-				}
-			}
-			const strategy = new DummyStrategy(config)
-			OPENID_HANDLERS.forEach(h => {
-				strategy[h] = () => null
-			})
-			strategy.get_jwks = () => null
-
-			let error
-			try {
-				verifyStrategy(strategy)
-			} catch (err) {
-				error = err
-			}
-
-			assert.isOk(error, '01')
-			assert.equal(error.message, 'strategy\'s \'get_id_token_signing_alg_values_supported\' event handler is required when the \'get_jwks\' event handler is defined.', '02')
-		})
 	})
 })
 
