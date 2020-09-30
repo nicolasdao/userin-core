@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/nicolasdao/userin-core/compare/v1.7.0...v1.8.0) (2020-09-30)
+
+
+### Features
+
+* Add support for configuring the supported grant types ([7669a70](https://github.com/nicolasdao/userin-core/commit/7669a70a52c2857c3e22ea44835b0d0285dfb5de))
+
 ## [1.7.0](https://github.com/nicolasdao/userin-core/compare/v1.6.2...v1.7.0) (2020-09-29)
 
 
