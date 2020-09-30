@@ -33,7 +33,7 @@ const OPENID_OPTIONAL_EVENTS = [
 	'get_grant_types_supported'
 ]
 
-const OPENID_EVENTS = [...OPENID_REQUIRED_EVENTS, OPENID_OPTIONAL_EVENTS]
+const OPENID_EVENTS = [...OPENID_REQUIRED_EVENTS, ...OPENID_OPTIONAL_EVENTS]
 
 const LOGIN_SIGNUP_EVENTS = [
 	// Creates a new user
