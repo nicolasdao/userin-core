@@ -23,15 +23,15 @@ const OPENID_REQUIRED_EVENTS = [
 	'get_refresh_token_claims',
 	// Gets metadata
 	'get_claims_supported',
-	'get_scopes_supported',
-	'get_id_token_signing_alg_values_supported'
+	'get_scopes_supported'
 ]
 
 const OPENID_OPTIONAL_EVENTS = [
 	// Gets tokens' details
 	'get_jwks',
 	// Gets metadata
-	'get_grant_types_supported'
+	'get_grant_types_supported',
+	'get_id_token_signing_alg_values_supported'
 ]
 
 const OPENID_EVENTS = [...OPENID_REQUIRED_EVENTS, OPENID_OPTIONAL_EVENTS]
@@ -206,6 +206,9 @@ const verifyStrategy = strategy => {
 		if (tf != 'function')
 			throw new Error(`strategy's '${eventName}' event handler is not a function. Found ${tf} instead.`)
 	})
+
+	if (strategy.get_jwks && !strategy.get_id_token_signing_alg_values_supported)
+		throw new Error('strategy\'s \'get_id_token_signing_alg_values_supported\' event handler is required when the \'get_jwks\' event handler is defined.')
 }
 
 module.exports = {
