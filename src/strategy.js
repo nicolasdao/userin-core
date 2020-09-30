@@ -5,7 +5,7 @@ const LOGIN_SIGNUP_FIP_MODE = 'loginsignupfip'
 const SUPPORTED_MODES = [OPENID_MODE, LOGIN_SIGNUP_MODE, LOGIN_SIGNUP_FIP_MODE]
 const CONFIG_KEYS = ['modes', 'tokenExpiry', 'openid']
 
-const OPENID_EVENTS = [
+const OPENID_REQUIRED_EVENTS = [
 	// Generates tokens
 	'generate_access_token',
 	'generate_authorization_code',
@@ -21,13 +21,20 @@ const OPENID_EVENTS = [
 	'get_authorization_code_claims',
 	'get_id_token_claims', 
 	'get_refresh_token_claims',
-	'get_jwks',
 	// Gets metadata
 	'get_claims_supported',
 	'get_scopes_supported',
-	'get_id_token_signing_alg_values_supported',
+	'get_id_token_signing_alg_values_supported'
+]
+
+const OPENID_OPTIONAL_EVENTS = [
+	// Gets tokens' details
+	'get_jwks',
+	// Gets metadata
 	'get_grant_types_supported'
 ]
+
+const OPENID_EVENTS = [...OPENID_REQUIRED_EVENTS, OPENID_OPTIONAL_EVENTS]
 
 const LOGIN_SIGNUP_EVENTS = [
 	// Creates a new user
@@ -180,7 +187,7 @@ const verifyStrategy = strategy => {
 	if (isLoginSignupFipModeOn(modes))
 		events.push(...LOGIN_SIGNUP_FIP_EVENTS)
 	if (isOpenIdModeOn(modes))
-		events.push(...OPENID_EVENTS)
+		events.push(...OPENID_REQUIRED_EVENTS)
 
 	const requiredEvents = Array.from(new Set(events))
 
@@ -208,7 +215,7 @@ module.exports = {
 	isLoginSignupModeOn,
 	isOpenIdModeOn,
 	getEvents: () => SUPPORTED_EVENTS,
-	getOpenIdEvents: () => OPENID_EVENTS,
+	getOpenIdEvents: (options={}) => options.required ? OPENID_REQUIRED_EVENTS : options.optional ? OPENID_OPTIONAL_EVENTS : OPENID_EVENTS,
 	getLoginSignupEvents: () => LOGIN_SIGNUP_EVENTS,
 	getLoginSignupFIPEvents: () => LOGIN_SIGNUP_FIP_EVENTS
 }

@@ -323,7 +323,7 @@ describe('Strategy', () => {
 	})
 })
 
-const OPENID_HANDLERS = getOpenIdEvents()
+const OPENID_HANDLERS = getOpenIdEvents({ required:true })
 const LOGIN_SIGNUP_HANDLERS = getLoginSignupEvents()
 const LOGIN_SIGNUP_FIP_HANDLERS = getLoginSignupFIPEvents()
 
