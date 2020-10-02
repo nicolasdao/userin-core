@@ -45,6 +45,7 @@ const LOGIN_SIGNUP_EVENTS = [
 	'generate_refresh_token',
 	// Gets tokens' details
 	'get_refresh_token_claims',
+	'get_access_token_claims',
 	// Deletes refresh_token
 	'delete_refresh_token'
 ]
