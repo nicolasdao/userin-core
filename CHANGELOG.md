@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.10.0](https://github.com/nicolasdao/userin-core/compare/v1.9.3...v1.10.0) (2020-10-02)
+
+
+### Features
+
+* Add support for deleting refresh_token ([d728866](https://github.com/nicolasdao/userin-core/commit/d72886618cb97606cb87b5b341ae07c67e9b8757))
+
 ### [1.9.3](https://github.com/nicolasdao/userin-core/compare/v1.9.2...v1.9.3) (2020-09-30)
 
 
