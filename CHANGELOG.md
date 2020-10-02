@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.11.0](https://github.com/nicolasdao/userin-core/compare/v1.10.0...v1.11.0) (2020-10-02)
+
+
+### Features
+
+* Add support for get_access_token_claims in the loginsignup mode ([f4c1e92](https://github.com/nicolasdao/userin-core/commit/f4c1e92bfc1a3499ea581e259aa6d58179d329ed))
+
 ## [1.10.0](https://github.com/nicolasdao/userin-core/compare/v1.9.3...v1.10.0) (2020-10-02)
 
 
