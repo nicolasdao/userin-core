@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.12.0](https://github.com/nicolasdao/userin-core/compare/v1.11.0...v1.12.0) (2020-10-04)
+
+
+### Features
+
+* Add support for setting up a baseUrl ([2574bed](https://github.com/nicolasdao/userin-core/commit/2574bedf62c44e59467479f1f6672be097249c35))
+
 ## [1.11.0](https://github.com/nicolasdao/userin-core/compare/v1.10.0...v1.11.0) (2020-10-02)
 
 
