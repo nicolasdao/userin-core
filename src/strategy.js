@@ -1,3 +1,4 @@
+const { validateUrl, getInfo } = require('./_utils')
 
 const OPENID_MODE = 'openid'
 const LOGIN_SIGNUP_MODE = 'loginsignup'
@@ -81,6 +82,7 @@ class Strategy {
 	/**
 	 * Creates a new UserIn Strategy instance.
 	 * 
+	 * @param  {String}		config.baseUrl							
 	 * @param  {[String]}	config.modes							Valid values: 'openid', 'loginsignup' (default).
 	 * @param  {String}		config.tokenExpiry.access_token			[Required] access_token expiry time in seconds.
 	 * @param  {String}		config.tokenExpiry.refresh_token		refresh_token expiry time in seconds. Default null, which means this token never expires.
@@ -98,6 +100,10 @@ class Strategy {
 		if (typeof(config) != 'object') 
 			throw new Error(`The UserIn strategy 'config' is expected to be an object, found ${typeof(config)} instead`)
 		
+		if (!config.baseUrl)
+			throw new Error('The UserIn strategy \'config.baseUrl\' is required.')
+		if (!validateUrl(config.baseUrl))
+			throw new Error(`The UserIn strategy 'config.baseUrl' ${config.baseUrl} is not a valid url.`)
 		if (config.tokenExpiry && typeof(config.tokenExpiry) != 'object') 
 			throw new Error(`The UserIn strategy 'config.tokenExpiry' is expected to be an object. Found ${typeof(config.tokenExpiry)} instead.`)
 		if (config.openid && config.openid.tokenExpiry && typeof(config.openid.tokenExpiry) != 'object') 
@@ -117,6 +123,7 @@ class Strategy {
 			tokenExpiry.refresh_token = tokenExpiry.refresh_token*1
 
 		this.config = {
+			baseUrl: config.baseUrl,
 			tokenExpiry: {
 				access_token: tokenExpiry.access_token,
 				refresh_token: tokenExpiry.refresh_token || null
@@ -142,8 +149,6 @@ class Strategy {
 			// 4.A. Validates the config
 			if (!config.openid) 
 				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'config.openid' object is required`)
-			if (!config.openid.iss) 
-				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'config.openid.iss' string is required`)
 			if (!tokenExpiry) 
 				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry' object is required`)
 			if (!tokenExpiry.id_token) 
@@ -158,7 +163,9 @@ class Strategy {
 			tokenExpiry.id_token = tokenExpiry.id_token*1
 			tokenExpiry.code = tokenExpiry.code*1
 
-			this.config.iss = config.openid.iss
+			const { origin } = getInfo(config.baseUrl)
+
+			this.config.iss = origin
 			this.config.tokenExpiry.id_token = tokenExpiry.id_token
 			this.config.tokenExpiry.code = tokenExpiry.code
 		}
