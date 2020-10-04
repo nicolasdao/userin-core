@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.12.1](https://github.com/nicolasdao/userin-core/compare/v1.12.0...v1.12.1) (2020-10-04)
+
+
+### Bug Fixes
+
+* The validate URL helper does not support localhost URL ([2efe37e](https://github.com/nicolasdao/userin-core/commit/2efe37e13c1a613b5c5452b273dd26921b07f323))
+
 ## [1.12.0](https://github.com/nicolasdao/userin-core/compare/v1.11.0...v1.12.0) (2020-10-04)
 
 
