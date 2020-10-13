@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.14.0](https://github.com/nicolasdao/userin-core/compare/v1.13.0...v1.14.0) (2020-10-13)
+
+
+### Features
+
+* Add support for wrapping errors in userInError ([3607a9f](https://github.com/nicolasdao/userin-core/commit/3607a9fdd4187a37289d2f4f289c9eaa27e55a80))
+
 ## [1.13.0](https://github.com/nicolasdao/userin-core/compare/v1.12.1...v1.13.0) (2020-10-13)
 
 
