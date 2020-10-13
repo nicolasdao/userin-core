@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.13.0](https://github.com/nicolasdao/userin-core/compare/v1.12.1...v1.13.0) (2020-10-13)
+
+
+### Features
+
+* Add support for new event handlers that can power the '/authorize' endpoint ([7fecc7a](https://github.com/nicolasdao/userin-core/commit/7fecc7a81cc2db37641c96e9bca49dcb6d0ddb78))
+
 ### [1.12.1](https://github.com/nicolasdao/userin-core/compare/v1.12.0...v1.12.1) (2020-10-04)
 
 
