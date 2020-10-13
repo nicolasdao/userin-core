@@ -13,6 +13,7 @@ const { Strategy, verifyStrategy, getLoginSignupFIPEvents, getOpenIdEvents, getL
 
 const iss = 'https://account.userin.com'
 const baseUrl = `${iss}/oauth2`
+const consentPage = 'https://userin.com/third-party/consent-page'
 
 describe('Strategy', () => {
 	describe('#constructor', () => {
@@ -89,6 +90,7 @@ describe('Strategy', () => {
 			try {
 				const config = {
 					baseUrl,
+					consentPage,
 					modes: ['openid'],
 					tokenExpiry:{
 						access_token: 3600
@@ -97,65 +99,56 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'config.openid\' object is required', '02')
+				assert.equal(err.message, 'When modes contains \'loginsignupfip\' or \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
 			}
 		})
 		it('09 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry\' object.', () => {
 			try {
 				const config = {
 					baseUrl,
+					consentPage,
 					modes: ['openid'],
 					tokenExpiry:{
 						access_token: 3600
-					},
-					openid:{
-						iss: iss
 					}
 				}
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required', '02')
+				assert.equal(err.message, 'When modes contains \'loginsignupfip\' or \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
 			}
 		})
 		it('10 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.id_token\' number.', () => {
 			try {
 				const config = {
 					baseUrl,
+					consentPage,
 					modes: ['openid'],
 					tokenExpiry:{
 						access_token: 3600
-					},
-					openid:{
-						iss: iss,
-						tokenExpiry:{}
 					}
 				}
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.id_token\' number is required', '02')
+				assert.equal(err.message, 'When modes contains \'loginsignupfip\' or \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
 			}
 		})
 		it('11 - Should fail if the mode contains \'openid\' and the config is missing the \'openid.tokenExpiry.code\' number.', () => {
 			try {
 				const config = {
 					baseUrl,
+					consentPage,
 					modes: ['openid'],
 					tokenExpiry:{
-						access_token: 3600
-					},
-					openid:{
-						iss: iss,
-						tokenExpiry:{
-							id_token: 3600
-						}
+						access_token: 3600,
+						id_token: 3600
 					}
 				}
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
+				assert.equal(err.message, 'When modes contains \'loginsignupfip\' or \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
 			}
 		})
 		it('12 - Should fail if the \'tokenExpiry.refresh_token\' is not a number.', () => {
@@ -207,15 +200,12 @@ describe('Strategy', () => {
 		it('15 - Should create a new UserIn strategy when both the tokenExpiry and the openid object are valid and the mode contains \'loginsignup\' and \'openid\'.', () => {
 			const config = {
 				baseUrl,
+				consentPage,
 				modes:['loginsignup', 'openid'],
 				tokenExpiry:{
-					access_token: 3600
-				},
-				openid: {
-					tokenExpiry: {
-						id_token:1200,
-						code:30
-					}
+					access_token: 3600,
+					id_token:1200,
+					code:30
 				}
 			}
 			const strategy = new Strategy(config)
@@ -232,16 +222,13 @@ describe('Strategy', () => {
 		it('16 - Should create a new UserIn strategy with a refresh_token config when both the tokenExpiry and the openid object are valid and the mode contains \'loginsignup\' and \'openid\'.', () => {
 			const config = {
 				baseUrl,
+				consentPage,
 				modes:['loginsignup', 'openid'],
 				tokenExpiry:{
 					access_token: 3600,
-					refresh_token: 1000000
-				},
-				openid: {
-					tokenExpiry: {
-						id_token:1200,
-						code:30
-					}
+					refresh_token: 1000000,
+					id_token:1200,
+					code:30
 				}
 			}
 			const strategy = new Strategy(config)
@@ -258,38 +245,13 @@ describe('Strategy', () => {
 		it('17 - Should support setting all the tokenExpiry in \'config.tokenExpiry\'.', () => {
 			const config = {
 				baseUrl,
+				consentPage,
 				modes:['loginsignup', 'openid'],
 				tokenExpiry:{
 					access_token: 3600,
 					refresh_token: 1000000,
 					id_token:1200,
 					code:30
-				},
-				openid: {
-				}
-			}
-			const strategy = new Strategy(config)
-			assert.isOk(strategy, '01')
-			assert.isOk(strategy.modes, '02')
-			assert.isOk(strategy.config, '03')
-			assert.equal(strategy.modes.join(''), 'loginsignupopenid','04')
-			assert.equal(strategy.config.tokenExpiry.access_token, 3600,'05')
-			assert.equal(strategy.config.tokenExpiry.refresh_token, 1000000,'06')
-			assert.equal(strategy.config.tokenExpiry.id_token, 1200,'07')
-			assert.equal(strategy.config.tokenExpiry.code, 30,'08')
-			assert.equal(strategy.config.iss, iss,'09')
-		})
-		it('18 - Should support setting all the tokenExpiry in \'config.openid.tokenExpiry\'.', () => {
-			const config = {
-				baseUrl,
-				modes:['loginsignup', 'openid'],
-				openid: {
-					tokenExpiry:{
-						access_token: 3600,
-						refresh_token: 1000000,
-						id_token:1200,
-						code:30
-					}
 				}
 			}
 			const strategy = new Strategy(config)
@@ -315,7 +277,7 @@ describe('Strategy', () => {
 				const strategy = new Strategy(config) || 1
 				assert.isNotOk(strategy, '01')
 			} catch(err) {
-				assert.equal(err.message, 'When modes contains \'loginsignupfip\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
+				assert.equal(err.message, 'When modes contains \'loginsignupfip\' or \'openid\', the UserIn strategy \'tokenExpiry.code\' number is required', '02')
 			}
 		})
 		it('20 - Should succeed if the mode contains \'loginsignupfip\' and both the \'tokenExpiry.code\' and the \'tokenExpiry.access_token\' number.', () => {
@@ -336,6 +298,40 @@ describe('Strategy', () => {
 			assert.equal(strategy.config.tokenExpiry.access_token, 3600,'05')
 			assert.equal(strategy.config.tokenExpiry.refresh_token, null,'06')
 			assert.equal(strategy.config.tokenExpiry.code, 30,'07')
+		})
+		it('21 - Should fail if the config is missing the \'consentPage\' property and the modes contain \'openid\'.', () => {
+			try {
+				const config = {
+					baseUrl,
+					modes:['openid'],
+					tokenExpiry: {
+						access_token:3900,
+						id_token:3900,
+						code: 30
+					}
+				}
+				const strategy = new Strategy(config) || 1
+				assert.isNotOk(strategy, '01')
+			} catch(err) {
+				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'config.consentPage\' URL is required', '02')
+			}
+		})
+		it('22 - Should success if the config is missing the \'consentPage\' property and the modes does not contain \'openid\'.', () => {
+			try {
+				const config = {
+					baseUrl,
+					modes:['loginsignup'],
+					tokenExpiry: {
+						access_token:3900,
+						id_token:3900,
+						code: 30
+					}
+				}
+				const strategy = new Strategy(config) || 1
+				assert.isOk(strategy, '01')
+			} catch(err) {
+				assert.equal(err.message, 'When modes contains \'openid\', the UserIn strategy \'config.consentPage\' URL is required', '02')
+			}
 		})
 	})
 })
@@ -502,14 +498,12 @@ describe('verifyStrategy', () => {
 	describe('Strategy - openid mode', () => {
 		const config = {
 			baseUrl,
+			consentPage,
 			modes:['openid'],
-			openid: {
-				iss: 'https://www.userin.com',
-				tokenExpiry: {
-					id_token: 3600,
-					access_token: 3600,
-					code: 30
-				}
+			tokenExpiry: {
+				id_token: 3600,
+				access_token: 3600,
+				code: 30
 			}
 		}
 		it('01 - Should fail in openid mode when the no handlers have been defined', done => {

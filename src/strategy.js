@@ -12,16 +12,22 @@ const OPENID_REQUIRED_EVENTS = [
 	'generate_authorization_code',
 	'generate_id_token', 
 	'generate_refresh_token',
+	'generate_auth_request_code',
+	'generate_auth_consent_code',
 	// Gets a client's details
 	'get_client',
 	// Gets a user's details
 	'get_end_user', 
 	'get_identity_claims', 
+	// Links a client with a user
+	'link_client_to_user',
 	// Gets tokens' details
 	'get_access_token_claims', 
 	'get_authorization_code_claims',
 	'get_id_token_claims', 
 	'get_refresh_token_claims',
+	'get_auth_request_claims',
+	'get_auth_consent_claims',
 	// Gets metadata
 	'get_claims_supported',
 	'get_scopes_supported'
@@ -121,13 +127,13 @@ class Strategy {
 		tokenExpiry.access_token = tokenExpiry.access_token*1
 		if (tokenExpiry.refresh_token)
 			tokenExpiry.refresh_token = tokenExpiry.refresh_token*1
+		else
+			tokenExpiry.refresh_token = null
 
 		this.config = {
 			baseUrl: config.baseUrl,
-			tokenExpiry: {
-				access_token: tokenExpiry.access_token,
-				refresh_token: tokenExpiry.refresh_token || null
-			}
+			consentPage: config.consentPage,
+			tokenExpiry
 		}
 
 		// 2. Determines the modes
@@ -135,11 +141,11 @@ class Strategy {
 		this.modes = modes
 
 		// 3. Validates the loginsignupfip mode 
-		if (isLoginSignupFipModeOn(modes)) {
+		if (isLoginSignupFipModeOn(modes) || isOpenIdModeOn(modes)) {
 			if (!tokenExpiry.code) 
-				throw new Error(`When modes contains '${LOGIN_SIGNUP_FIP_MODE}', the UserIn strategy 'tokenExpiry.code' number is required`)
+				throw new Error(`When modes contains '${LOGIN_SIGNUP_FIP_MODE}' or '${OPENID_MODE}', the UserIn strategy 'tokenExpiry.code' number is required`)
 			if (isNaN(tokenExpiry.code*1)) 
-				throw new Error(`When modes contains '${LOGIN_SIGNUP_FIP_MODE}', the UserIn strategy 'tokenExpiry.code' must be a number in seconds. Found ${typeof(tokenExpiry.code)} instead.`)
+				throw new Error(`When modes contains '${LOGIN_SIGNUP_FIP_MODE}' or '${OPENID_MODE}', the UserIn strategy 'tokenExpiry.code' must be a number in seconds. Found ${typeof(tokenExpiry.code)} instead.`)
 
 			this.config.tokenExpiry.code = tokenExpiry.code*1
 		}
@@ -147,18 +153,16 @@ class Strategy {
 		// 4. Validates the OIDC configs
 		if (isOpenIdModeOn(modes)) {
 			// 4.A. Validates the config
-			if (!config.openid) 
-				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'config.openid' object is required`)
 			if (!tokenExpiry) 
 				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry' object is required`)
 			if (!tokenExpiry.id_token) 
 				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry.id_token' number is required`)
-			if (!tokenExpiry.code) 
-				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'tokenExpiry.code' number is required`)
 			if (isNaN(tokenExpiry.id_token*1)) 
 				throw new Error(`The UserIn strategy 'tokenExpiry.id_token' must be a number in seconds. Found ${typeof(tokenExpiry.id_token)} instead.`)
-			if (isNaN(tokenExpiry.code*1)) 
-				throw new Error(`The UserIn strategy 'tokenExpiry.code' must be a number in seconds. Found ${typeof(tokenExpiry.code)} instead.`)
+			if (!config.consentPage)
+				throw new Error(`When modes contains '${OPENID_MODE}', the UserIn strategy 'config.consentPage' URL is required`)
+			if (!validateUrl(config.consentPage))
+				throw new Error(`Invalid URL. config.consentPage ${config.consentPage} is not a valid URL`)
 
 			tokenExpiry.id_token = tokenExpiry.id_token*1
 			tokenExpiry.code = tokenExpiry.code*1
